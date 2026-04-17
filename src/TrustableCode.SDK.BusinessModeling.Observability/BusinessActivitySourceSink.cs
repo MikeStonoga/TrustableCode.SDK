@@ -54,6 +54,14 @@ public sealed class BusinessActivitySourceSink : IBusinessEvidenceSink
                 activity.SetTag("business.operation.name", sideEffect.BusinessOperation);
                 activity.SetTag("business.correlation_id", sideEffect.CorrelationId);
                 break;
+
+            case ReconciliationEvidence reconciliation:
+                activity.SetTag("business.model.name", reconciliation.ModelName);
+                activity.SetTag("business.subject.id", reconciliation.SubjectId);
+                activity.SetTag("business.reconciliation.requires_repair", reconciliation.RequiresRepair);
+                activity.SetTag("business.reconciliation.reason", reconciliation.RepairReason);
+                activity.SetTag("business.correlation_id", reconciliation.CorrelationId);
+                break;
         }
 
         return Task.CompletedTask;
