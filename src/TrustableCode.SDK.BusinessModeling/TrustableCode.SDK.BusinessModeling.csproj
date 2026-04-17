@@ -5,9 +5,17 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/MikeStonoga/TrustableCode.SDK</RepositoryUrl>
+    <PackageTags>business-modeling;ddd;domain-modeling;invariants;observability</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageId>TrustableCode.SDK.BusinessModeling</PackageId>
     <Authors>Mike Stonoga Machado</Authors>
     <Description>Primitives for explicit business modeling, invariant protection, safe transitions, and reusable business events.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
 </Project>

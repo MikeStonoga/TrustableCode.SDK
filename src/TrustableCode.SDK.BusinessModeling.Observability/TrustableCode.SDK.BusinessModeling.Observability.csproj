@@ -13,9 +13,17 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/MikeStonoga/TrustableCode.SDK</RepositoryUrl>
+    <PackageTags>business-modeling;business-observability;opentelemetry;domain-events</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageId>TrustableCode.SDK.BusinessModeling.Observability</PackageId>
     <Authors>Mike Stonoga Machado</Authors>
     <Description>Business observability primitives for transitions, invariant violations, side effects, and auditable business evidence.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
 </Project>
