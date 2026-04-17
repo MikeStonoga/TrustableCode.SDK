@@ -1,7 +1,5 @@
-using TrustableCode.SDK.BusinessModeling.Boundaries;
 using TrustableCode.SDK.BusinessModeling.Exceptions;
 using TrustableCode.SDK.BusinessModeling.Example.Ordering;
-using TrustableCode.SDK.BusinessModeling.Observability;
 
 namespace TrustableCode.SDK.BusinessModeling.Tests;
 
@@ -10,14 +8,14 @@ public sealed class OrderingSampleTests
     [Fact]
     public void PrepareForShipping_should_transition_record_event_and_emit_evidence()
     {
-        var order = Order.CreatePaid(OrderId.New());
-        var intent = new BusinessIntent<PrepareOrderForShippingRequest>(
-            Name: "PrepareOrderForShipping",
-            Payload: new PrepareOrderForShippingRequest(PaymentCaptured: true, StockReserved: true),
+        var order = Order.Create(new CreateOrderRequirement(OrderId.New(), OrderStatus.Paid));
+        var requirement = new PrepareOrderForShippingRequirement(
+            PaymentCaptured: true,
+            StockReserved: true,
             RequestedAt: new DateTimeOffset(2026, 4, 17, 21, 0, 0, TimeSpan.Zero),
             CorrelationId: "corr-order-1");
 
-        var evidence = order.PrepareForShipping(intent);
+        var evidence = order.PrepareForShipping(requirement);
         var businessEvents = order.DequeueBusinessEvents();
         var drainedEvidence = order.DequeueBusinessEvidence();
 
@@ -32,14 +30,14 @@ public sealed class OrderingSampleTests
     [Fact]
     public void PrepareForShipping_should_fail_when_payment_or_stock_are_not_ready()
     {
-        var order = Order.CreatePaid(OrderId.New());
-        var intent = new BusinessIntent<PrepareOrderForShippingRequest>(
-            Name: "PrepareOrderForShipping",
-            Payload: new PrepareOrderForShippingRequest(PaymentCaptured: false, StockReserved: false),
+        var order = Order.Create(new CreateOrderRequirement(OrderId.New(), OrderStatus.Paid));
+        var requirement = new PrepareOrderForShippingRequirement(
+            PaymentCaptured: false,
+            StockReserved: false,
             RequestedAt: DateTimeOffset.UtcNow,
             CorrelationId: "corr-order-2");
 
-        var exception = Assert.Throws<AggregatedBusinessRuleViolationException>(() => order.PrepareForShipping(intent));
+        var exception = Assert.Throws<AggregatedBusinessRuleViolationException>(() => order.PrepareForShipping(requirement));
 
         Assert.Equal(2, exception.Violations.Count);
         Assert.Contains("Payment must be captured before the order can be prepared for shipping.", exception.Violations);

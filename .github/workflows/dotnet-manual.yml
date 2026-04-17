@@ -1,0 +1,28 @@
+name: dotnet-manual
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-and-pack:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore TrustableCode.SDK.sln
+
+      - name: Test
+        run: dotnet test TrustableCode.SDK.sln --no-restore
+
+      - name: Pack
+        run: |
+          dotnet pack src/TrustableCode.SDK.BusinessModeling/TrustableCode.SDK.BusinessModeling.csproj -c Release -o ./artifacts
+          dotnet pack src/TrustableCode.SDK.BusinessModeling.Observability/TrustableCode.SDK.BusinessModeling.Observability.csproj -c Release -o ./artifacts

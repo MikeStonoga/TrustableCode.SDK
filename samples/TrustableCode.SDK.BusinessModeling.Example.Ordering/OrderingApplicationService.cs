@@ -1,4 +1,4 @@
-using TrustableCode.SDK.BusinessModeling.Boundaries;
+using TrustableCode.SDK.BusinessModeling.Events;
 using TrustableCode.SDK.BusinessModeling.Observability;
 
 namespace TrustableCode.SDK.BusinessModeling.Example.Ordering;
@@ -17,13 +17,14 @@ public sealed class OrderingApplicationService
 
     public async Task<OrderPreparationResult> PrepareForShippingAsync(
         Order order,
-        BusinessIntent<PrepareOrderForShippingRequest> intent,
+        PrepareOrderForShippingRequirement requirement,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(order);
-        ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(requirement);
 
-        var transitionEvidence = order.PrepareForShipping(intent);
+        var transitionEvidence = order.PrepareForShipping(requirement);
+        var businessEvents = BusinessEventsBatch.CreateFrom(order);
 
         await _evidenceSink.WriteAsync(transitionEvidence, cancellationToken);
 
@@ -38,6 +39,7 @@ public sealed class OrderingApplicationService
         return new OrderPreparationResult(
             order.Id,
             order.Status,
-            transitionEvidence.TransitionName);
+            transitionEvidence.TransitionName,
+            businessEvents.Count);
     }
 }

@@ -6,4 +6,5 @@ namespace TrustableCode.SDK.BusinessModeling.Example.Ordering;
 public sealed record OrderPreparationResult(
     OrderId OrderId,
     OrderStatus CurrentStatus,
-    string CompletedTransition);
+    string CompletedTransition,
+    int EmittedBusinessEvents);

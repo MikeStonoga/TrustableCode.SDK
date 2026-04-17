@@ -1,4 +1,3 @@
-using TrustableCode.SDK.BusinessModeling.Boundaries;
 using TrustableCode.SDK.BusinessModeling.Example.Ordering;
 using TrustableCode.SDK.BusinessModeling.Observability;
 
@@ -11,17 +10,18 @@ public sealed class OrderingApplicationServiceTests
     {
         var sink = new InMemoryBusinessEvidenceSink();
         var service = new OrderingApplicationService(sink);
-        var order = Order.CreatePaid(OrderId.New());
-        var intent = new BusinessIntent<PrepareOrderForShippingRequest>(
-            Name: "PrepareOrderForShipping",
-            Payload: new PrepareOrderForShippingRequest(PaymentCaptured: true, StockReserved: true),
+        var order = Order.Create(new CreateOrderRequirement(OrderId.New(), OrderStatus.Paid));
+        var requirement = new PrepareOrderForShippingRequirement(
+            PaymentCaptured: true,
+            StockReserved: true,
             RequestedAt: DateTimeOffset.UtcNow,
             CorrelationId: "corr-app-1");
 
-        var result = await service.PrepareForShippingAsync(order, intent);
+        var result = await service.PrepareForShippingAsync(order, requirement);
 
         Assert.Equal(OrderStatus.ReadyForShipping, result.CurrentStatus);
         Assert.Equal("PrepareForShipping", result.CompletedTransition);
+        Assert.Equal(1, result.EmittedBusinessEvents);
         Assert.Single(sink.Items);
         Assert.IsType<BusinessTransitionEvidence<OrderStatus>>(sink.Items[0]);
     }

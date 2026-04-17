@@ -1,5 +1,4 @@
 using TrustableCode.SDK.BusinessModeling;
-using TrustableCode.SDK.BusinessModeling.Boundaries;
 using TrustableCode.SDK.BusinessModeling.Invariants;
 using TrustableCode.SDK.BusinessModeling.Observability;
 using TrustableCode.SDK.BusinessModeling.Transitions;
@@ -12,10 +11,10 @@ public sealed class Order : AggregateRoot
 {
     private readonly List<IBusinessEvidence> _businessEvidence = [];
 
-    private Order(OrderId id, OrderStatus status)
+    private Order(CreateOrderRequirement requirement)
     {
-        Id = id;
-        Status = status;
+        Id = requirement.OrderId;
+        Status = requirement.InitialStatus;
     }
 
     public static BusinessInvariantManifest<OrderInvariant> Invariants { get; } =
@@ -37,40 +36,40 @@ public sealed class Order : AggregateRoot
 
     public IReadOnlyList<IBusinessEvidence> BusinessEvidence => _businessEvidence;
 
-    public static Order CreatePaid(OrderId id)
-        => new(id, OrderStatus.Paid);
+    public static Order Create(CreateOrderRequirement requirement)
+        => new(requirement);
 
-    public BusinessTransitionEvidence<OrderStatus> PrepareForShipping(BusinessIntent<PrepareOrderForShippingRequest> intent)
+    public BusinessTransitionEvidence<OrderStatus> PrepareForShipping(PrepareOrderForShippingRequirement requirement)
     {
         EnsureAll(notification => notification
             .Collect(new OrderMustBePaidBeforePreparingForShippingRule(Status))
-            .Collect(new PaymentMustBeCapturedBeforePreparingOrderForShippingRule(intent.Payload.PaymentCaptured))
-            .Collect(new StockMustBeReservedBeforePreparingOrderForShippingRule(intent.Payload.StockReserved)));
+            .Collect(new PaymentMustBeCapturedBeforePreparingOrderForShippingRule(requirement.PaymentCaptured))
+            .Collect(new StockMustBeReservedBeforePreparingOrderForShippingRule(requirement.StockReserved)));
 
         var transition = new NamedBusinessTransition<OrderStatus>(
             name: "PrepareForShipping",
             to: OrderStatus.ReadyForShipping,
-                currentStateAccessor: () => Status,
-                apply: next => Status = next,
-                canTransition: current => current == OrderStatus.Paid,
-                exceptionFactory: _ => new OrderMustBePaidBeforePreparingForShippingException());
+            currentStateAccessor: () => Status,
+            apply: next => Status = next,
+            canTransition: current => current == OrderStatus.Paid,
+            exceptionFactory: _ => new OrderMustBePaidBeforePreparingForShippingException());
 
         var executedTransition = transition.Execute();
-        RecordBusinessEvent(new OrderPreparedForShipping(Id, intent.RequestedAt));
+        RecordBusinessEvent(new OrderPreparedForShipping(Id, requirement.RequestedAt));
 
         var evidence = new BusinessTransitionEvidence<OrderStatus>(
             ModelName: nameof(Order),
             TransitionName: executedTransition.Name,
             PreviousState: executedTransition.From,
             CurrentState: executedTransition.To,
-            CorrelationId: intent.CorrelationId,
-            ObservedAt: intent.RequestedAt);
+            CorrelationId: requirement.CorrelationId,
+            ObservedAt: requirement.RequestedAt);
 
         _businessEvidence.Add(evidence);
         return evidence;
     }
 
-    public BusinessTransitionEvidence<OrderStatus> Cancel(DateTimeOffset requestedAt, string? correlationId = null)
+    public BusinessTransitionEvidence<OrderStatus> Cancel(CancelOrderRequirement requirement)
     {
         Ensure(new ShippedOrdersCannotBeCancelledRule(Status));
 
@@ -82,8 +81,8 @@ public sealed class Order : AggregateRoot
             TransitionName: "Cancel",
             PreviousState: previous,
             CurrentState: Status,
-            CorrelationId: correlationId,
-            ObservedAt: requestedAt);
+            CorrelationId: requirement.CorrelationId,
+            ObservedAt: requirement.RequestedAt);
 
         _businessEvidence.Add(evidence);
         return evidence;

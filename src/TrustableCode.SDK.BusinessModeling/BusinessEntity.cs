@@ -6,7 +6,7 @@ namespace TrustableCode.SDK.BusinessModeling;
 /// <summary>
 /// Base type for entities that need explicit invariant protection and business event collection.
 /// </summary>
-public abstract class BusinessEntity
+public abstract class BusinessEntity : IBusinessEventSource
 {
     private readonly List<IBusinessEvent> _businessEvents = [];
 
