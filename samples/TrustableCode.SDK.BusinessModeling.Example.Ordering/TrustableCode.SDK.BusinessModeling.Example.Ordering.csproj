@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TrustableCode.SDK.BusinessModeling\TrustableCode.SDK.BusinessModeling.csproj" />
+    <ProjectReference Include="..\..\src\TrustableCode.SDK.BusinessModeling.Observability\TrustableCode.SDK.BusinessModeling.Observability.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+</Project>
