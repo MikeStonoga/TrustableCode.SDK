@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BE9E26BD-B3E7-4928-85DA-5D3701047F90}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrustableCode.SDK.BusinessModeling", "src\TrustableCode.SDK.BusinessModeling\TrustableCode.SDK.BusinessModeling.csproj", "{5C7EFE01-1A65-46BA-ACEB-90ADBEEBBF6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrustableCode.SDK.BusinessModeling.Observability", "src\TrustableCode.SDK.BusinessModeling.Observability\TrustableCode.SDK.BusinessModeling.Observability.csproj", "{35CDB37D-47D5-4077-8126-3F2B8559D6D8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{30B0AC71-8966-48D5-9CBE-486877AE95DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrustableCode.SDK.BusinessModeling.Tests", "tests\TrustableCode.SDK.BusinessModeling.Tests\TrustableCode.SDK.BusinessModeling.Tests.csproj", "{B0B56E0B-F253-4E34-8712-1B471B0A71EB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5C7EFE01-1A65-46BA-ACEB-90ADBEEBBF6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C7EFE01-1A65-46BA-ACEB-90ADBEEBBF6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C7EFE01-1A65-46BA-ACEB-90ADBEEBBF6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C7EFE01-1A65-46BA-ACEB-90ADBEEBBF6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35CDB37D-47D5-4077-8126-3F2B8559D6D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35CDB37D-47D5-4077-8126-3F2B8559D6D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35CDB37D-47D5-4077-8126-3F2B8559D6D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35CDB37D-47D5-4077-8126-3F2B8559D6D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0B56E0B-F253-4E34-8712-1B471B0A71EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0B56E0B-F253-4E34-8712-1B471B0A71EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0B56E0B-F253-4E34-8712-1B471B0A71EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0B56E0B-F253-4E34-8712-1B471B0A71EB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5C7EFE01-1A65-46BA-ACEB-90ADBEEBBF6C} = {BE9E26BD-B3E7-4928-85DA-5D3701047F90}
+		{35CDB37D-47D5-4077-8126-3F2B8559D6D8} = {BE9E26BD-B3E7-4928-85DA-5D3701047F90}
+		{B0B56E0B-F253-4E34-8712-1B471B0A71EB} = {30B0AC71-8966-48D5-9CBE-486877AE95DB}
+	EndGlobalSection
+EndGlobal

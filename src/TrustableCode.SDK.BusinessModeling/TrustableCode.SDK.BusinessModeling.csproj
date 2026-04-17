@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>TrustableCode.SDK.BusinessModeling</PackageId>
+    <Authors>Mike Stonoga Machado</Authors>
+    <Description>Primitives for explicit business modeling, invariant protection, safe transitions, and reusable business events.</Description>
+  </PropertyGroup>
+
+</Project>

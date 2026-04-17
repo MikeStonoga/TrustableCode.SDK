@@ -1,0 +1,13 @@
+/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/bin/Debug/net8.0/TrustableCode.SDK.BusinessModeling.deps.json
+/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/bin/Debug/net8.0/TrustableCode.SDK.BusinessModeling.dll
+/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/bin/Debug/net8.0/TrustableCode.SDK.BusinessModeling.pdb
+/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/bin/Debug/net8.0/TrustableCode.SDK.BusinessModeling.xml
+/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/obj/Debug/net8.0/TrustableCode.SDK.BusinessModeling.GeneratedMSBuildEditorConfig.editorconfig
+/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/obj/Debug/net8.0/TrustableCode.SDK.BusinessModeling.AssemblyInfoInputs.cache
+/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/obj/Debug/net8.0/TrustableCode.SDK.BusinessModeling.AssemblyInfo.cs
+/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/obj/Debug/net8.0/TrustableCode.SDK.BusinessModeling.csproj.CoreCompileInputs.cache
+/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/obj/Debug/net8.0/TrustableCode.SDK.BusinessModeling.dll
+/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/obj/Debug/net8.0/refint/TrustableCode.SDK.BusinessModeling.dll
+/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/obj/Debug/net8.0/TrustableCode.SDK.BusinessModeling.xml
+/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/obj/Debug/net8.0/TrustableCode.SDK.BusinessModeling.pdb
+/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/obj/Debug/net8.0/ref/TrustableCode.SDK.BusinessModeling.dll

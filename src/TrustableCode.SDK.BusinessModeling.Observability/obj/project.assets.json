@@ -1,0 +1,89 @@
+{
+  "version": 3,
+  "targets": {
+    "net8.0": {
+      "TrustableCode.SDK.BusinessModeling/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/TrustableCode.SDK.BusinessModeling.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/TrustableCode.SDK.BusinessModeling.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "TrustableCode.SDK.BusinessModeling/1.0.0": {
+      "type": "project",
+      "path": "../TrustableCode.SDK.BusinessModeling/TrustableCode.SDK.BusinessModeling.csproj",
+      "msbuildProject": "../TrustableCode.SDK.BusinessModeling/TrustableCode.SDK.BusinessModeling.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net8.0": [
+      "TrustableCode.SDK.BusinessModeling >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "/home/mike-stonoga-machado/.nuget/packages/": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling.Observability/TrustableCode.SDK.BusinessModeling.Observability.csproj",
+      "projectName": "TrustableCode.SDK.BusinessModeling.Observability",
+      "projectPath": "/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling.Observability/TrustableCode.SDK.BusinessModeling.Observability.csproj",
+      "packagesPath": "/home/mike-stonoga-machado/.nuget/packages/",
+      "outputPath": "/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling.Observability/obj/",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "/home/mike-stonoga-machado/.nuget/NuGet/NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net8.0"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "projectReferences": {
+            "/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/TrustableCode.SDK.BusinessModeling.csproj": {
+              "projectPath": "/home/mike-stonoga-machado/TrustableCode.SDK/src/TrustableCode.SDK.BusinessModeling/TrustableCode.SDK.BusinessModeling.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "net8.0": {
+        "targetAlias": "net8.0",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.125/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}

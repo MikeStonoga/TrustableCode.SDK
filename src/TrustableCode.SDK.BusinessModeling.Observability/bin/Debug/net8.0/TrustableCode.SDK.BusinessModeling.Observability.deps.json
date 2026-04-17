@@ -1,0 +1,36 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "TrustableCode.SDK.BusinessModeling.Observability/1.0.0": {
+        "dependencies": {
+          "TrustableCode.SDK.BusinessModeling": "1.0.0"
+        },
+        "runtime": {
+          "TrustableCode.SDK.BusinessModeling.Observability.dll": {}
+        }
+      },
+      "TrustableCode.SDK.BusinessModeling/1.0.0": {
+        "runtime": {
+          "TrustableCode.SDK.BusinessModeling.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "TrustableCode.SDK.BusinessModeling.Observability/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "TrustableCode.SDK.BusinessModeling/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

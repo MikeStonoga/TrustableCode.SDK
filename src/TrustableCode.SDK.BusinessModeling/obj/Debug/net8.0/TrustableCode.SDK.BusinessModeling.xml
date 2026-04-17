@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>TrustableCode.SDK.BusinessModeling</name>
+    </assembly>
+    <members>
+        <member name="T:TrustableCode.SDK.BusinessModeling.BusinessEntity">
+            <summary>
+            Base type for entities that need explicit invariant protection and business event collection.
+            </summary>
+        </member>
+        <member name="P:TrustableCode.SDK.BusinessModeling.BusinessEntity.BusinessEvents">
+            <summary>
+            Gets the business events recorded by the entity since the last dequeue.
+            </summary>
+        </member>
+        <member name="M:TrustableCode.SDK.BusinessModeling.BusinessEntity.RecordBusinessEvent(TrustableCode.SDK.BusinessModeling.Events.IBusinessEvent)">
+            <summary>
+            Records a meaningful business event after a legitimate state change.
+            </summary>
+        </member>
+        <member name="M:TrustableCode.SDK.BusinessModeling.BusinessEntity.Ensure(TrustableCode.SDK.BusinessModeling.Invariants.IBusinessInvariantRule)">
+            <summary>
+            Enforces a single invariant rule immediately.
+            </summary>
+        </member>
+        <member name="M:TrustableCode.SDK.BusinessModeling.BusinessEntity.EnsureAll(System.Action{TrustableCode.SDK.BusinessModeling.Invariants.BusinessNotification})">
+            <summary>
+            Enforces multiple independent invariant rules and fails with the aggregated violations.
+            </summary>
+        </member>
+        <member name="M:TrustableCode.SDK.BusinessModeling.BusinessEntity.DequeueBusinessEvents">
+            <summary>
+            Returns the currently recorded business events and clears the internal queue.
+            </summary>
+        </member>
+        <member name="T:TrustableCode.SDK.BusinessModeling.Events.BusinessEvent">
+            <summary>
+            Base record for business events captured by entities and aggregates.
+            </summary>
+        </member>
+        <member name="M:TrustableCode.SDK.BusinessModeling.Events.BusinessEvent.#ctor(System.DateTimeOffset)">
+            <summary>
+            Base record for business events captured by entities and aggregates.
+            </summary>
+        </member>
+        <member name="T:TrustableCode.SDK.BusinessModeling.Events.IBusinessEvent">
+            <summary>
+            Represents a meaningful business occurrence emitted by the model after a legitimate state change.
+            </summary>
+        </member>
+        <member name="P:TrustableCode.SDK.BusinessModeling.Events.IBusinessEvent.OccurredAt">
+            <summary>
+            Time when the business event occurred.
+            </summary>
+        </member>
+        <member name="T:TrustableCode.SDK.BusinessModeling.Exceptions.AggregatedBusinessRuleViolationException">
+            <summary>
+            Represents a set of business rule violations collected together before failing.
+            </summary>
+        </member>
+        <member name="M:TrustableCode.SDK.BusinessModeling.Exceptions.AggregatedBusinessRuleViolationException.#ctor(System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>
+            Creates an exception containing multiple violated business rules.
+            </summary>
+        </member>
+        <member name="P:TrustableCode.SDK.BusinessModeling.Exceptions.AggregatedBusinessRuleViolationException.Violations">
+            <summary>
+            Gets the collected violation messages.
+            </summary>
+        </member>
+        <member name="T:TrustableCode.SDK.BusinessModeling.Exceptions.BusinessRuleViolationException">
+            <summary>
+            Base exception for violated business invariants and illegal business transitions.
+            </summary>
+        </member>
+        <member name="M:TrustableCode.SDK.BusinessModeling.Exceptions.BusinessRuleViolationException.#ctor(System.String)">
+            <summary>
+            Creates an exception for a violated business rule.
+            </summary>
+        </member>
+        <member name="M:TrustableCode.SDK.BusinessModeling.Exceptions.BusinessRuleViolationException.#ctor(System.String,System.Exception)">
+            <summary>
+            Creates an exception for a violated business rule with an inner cause.
+            </summary>
+        </member>
+        <member name="T:TrustableCode.SDK.BusinessModeling.Invariants.BusinessNotification">
+            <summary>
+            Collects multiple independent business rule violations before throwing.
+            </summary>
+        </member>
+        <member name="P:TrustableCode.SDK.BusinessModeling.Invariants.BusinessNotification.Violations">
+            <summary>
+            Gets the collected violation messages.
+            </summary>
+        </member>
+        <member name="P:TrustableCode.SDK.BusinessModeling.Invariants.BusinessNotification.HasViolations">
+            <summary>
+            Gets whether at least one business rule violation has been collected.
+            </summary>
+        </member>
+        <member name="M:TrustableCode.SDK.BusinessModeling.Invariants.BusinessNotification.Collect(TrustableCode.SDK.BusinessModeling.Invariants.IBusinessInvariantRule)">
+            <summary>
+            Executes a rule and collects its violation instead of failing immediately.
+            </summary>
+        </member>
+        <member name="M:TrustableCode.SDK.BusinessModeling.Invariants.BusinessNotification.CollectIf(System.Boolean,System.Func{TrustableCode.SDK.BusinessModeling.Invariants.IBusinessInvariantRule})">
+            <summary>
+            Lazily executes a rule only when the supplied condition is true.
+            </summary>
+        </member>
+        <member name="M:TrustableCode.SDK.BusinessModeling.Invariants.BusinessNotification.ThrowIfAny">
+            <summary>
+            Throws when any collected violation exists.
+            </summary>
+        </member>
+        <member name="T:TrustableCode.SDK.BusinessModeling.Invariants.IBusinessInvariantRule">
+            <summary>
+            A focused, testable rule that protects an important business truth.
+            </summary>
+        </member>
+        <member name="P:TrustableCode.SDK.BusinessModeling.Invariants.IBusinessInvariantRule.Description">
+            <summary>
+            Human-readable description of the protected business truth.
+            </summary>
+        </member>
+        <member name="M:TrustableCode.SDK.BusinessModeling.Invariants.IBusinessInvariantRule.EnsureIsPreserved">
+            <summary>
+            Throws when the business truth is not preserved.
+            </summary>
+        </member>
+        <member name="T:TrustableCode.SDK.BusinessModeling.Transitions.BusinessTransition`1">
+            <summary>
+            Represents an explicit business transition between two meaningful states.
+            </summary>
+        </member>
+        <member name="M:TrustableCode.SDK.BusinessModeling.Transitions.BusinessTransition`1.#ctor(System.String,`0,`0)">
+            <summary>
+            Represents an explicit business transition between two meaningful states.
+            </summary>
+        </member>
+    </members>
+</doc>
