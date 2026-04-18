@@ -66,6 +66,7 @@ It is designed to make code more explicit about:
 The repository includes a full sample at:
 
 - `samples/TrustableCode.SDK.BusinessModeling.Example.Ordering`
+- `samples/TrustableCode.SDK.BusinessModeling.Example.Invoicing`
 
 The sample shows:
 
