@@ -33,6 +33,8 @@ Core primitives for explicit business modeling:
 - `IBusinessEventPublisher`
 - `IBusinessTransactionRunner`
 
+Business events carry their own `EventId` so the same business fact can be recognized across retries, while outbox messages keep a separate `MessageId` for delivery attempts.
+
 ### `TrustableCode.SDK.BusinessModeling.Observability`
 
 Observability primitives for business evidence:

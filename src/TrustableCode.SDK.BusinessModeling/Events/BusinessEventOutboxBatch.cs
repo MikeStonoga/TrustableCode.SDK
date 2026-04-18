@@ -22,6 +22,7 @@ public static class BusinessEventOutboxBatch
         return businessEvents
             .Select(businessEvent => new BusinessEventOutboxMessage(
                 MessageId: Guid.NewGuid(),
+                EventId: businessEvent.EventId,
                 StreamName: streamName,
                 EventName: businessEvent.GetType().Name,
                 BusinessEvent: businessEvent,

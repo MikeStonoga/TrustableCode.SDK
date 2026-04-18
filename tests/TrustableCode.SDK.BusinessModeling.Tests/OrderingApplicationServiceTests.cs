@@ -33,6 +33,7 @@ public sealed class OrderingApplicationServiceTests
         Assert.Single(outbox.Messages);
         Assert.Single(publisher.PublishedMessages);
         Assert.Equal(outbox.Messages[0], publisher.PublishedMessages[0]);
+        Assert.Equal(outbox.Messages[0].BusinessEvent.EventId, outbox.Messages[0].EventId);
     }
 
     [Fact]
@@ -55,6 +56,29 @@ public sealed class OrderingApplicationServiceTests
         Assert.Equal(
             ["transaction-begin", "outbox-enqueue", "transaction-commit", "publish", "evidence"],
             sequence);
+    }
+
+    [Fact]
+    public async Task PrepareForShippingAsync_should_allow_deduplication_by_event_id_on_retry()
+    {
+        var sink = new InMemoryBusinessEvidenceSink();
+        var transactionRunner = new RecordingTransactionRunner();
+        var outbox = new RetryingBusinessEventOutbox();
+        var publisher = new DeduplicatingBusinessEventPublisher();
+        var service = new OrderingApplicationService(sink, transactionRunner, outbox, publisher);
+        var order = Order.Create(new CreateOrderRequirement(OrderId.New(), OrderStatus.Paid));
+
+        await service.PrepareForShippingAsync(order, new PrepareOrderForShippingRequirement(
+            PaymentCaptured: true,
+            StockReserved: true,
+            RequestedAt: DateTimeOffset.UtcNow,
+            CorrelationId: "corr-app-3"));
+
+        await publisher.PublishAsync(outbox.RetriedMessages, CancellationToken.None);
+
+        Assert.Single(publisher.AcceptedMessages);
+        Assert.Equal(2, publisher.AttemptedMessages.Count);
+        Assert.Equal(publisher.AttemptedMessages[0].EventId, publisher.AttemptedMessages[1].EventId);
     }
 
     private sealed class InMemoryBusinessEvidenceSink : IBusinessEvidenceSink
@@ -95,6 +119,44 @@ public sealed class OrderingApplicationServiceTests
         {
             sequence?.Add("publish");
             PublishedMessages.AddRange(messages);
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class DeduplicatingBusinessEventPublisher : IBusinessEventPublisher
+    {
+        private readonly HashSet<Guid> _seenEventIds = [];
+
+        public List<BusinessEventOutboxMessage> AttemptedMessages { get; } = [];
+
+        public List<BusinessEventOutboxMessage> AcceptedMessages { get; } = [];
+
+        public Task PublishAsync(IReadOnlyList<BusinessEventOutboxMessage> messages, CancellationToken cancellationToken = default)
+        {
+            foreach (var message in messages)
+            {
+                AttemptedMessages.Add(message);
+
+                if (_seenEventIds.Add(message.EventId))
+                {
+                    AcceptedMessages.Add(message);
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class RetryingBusinessEventOutbox : IBusinessEventOutbox
+    {
+        public List<BusinessEventOutboxMessage> StoredMessages { get; } = [];
+
+        public IReadOnlyList<BusinessEventOutboxMessage> RetriedMessages
+            => StoredMessages.Select(message => message with { MessageId = Guid.NewGuid() }).ToArray();
+
+        public Task EnqueueAsync(IReadOnlyList<BusinessEventOutboxMessage> messages, CancellationToken cancellationToken = default)
+        {
+            StoredMessages.AddRange(messages);
             return Task.CompletedTask;
         }
     }

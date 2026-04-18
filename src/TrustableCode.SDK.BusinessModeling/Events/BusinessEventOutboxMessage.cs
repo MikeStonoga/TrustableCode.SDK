@@ -5,6 +5,7 @@ namespace TrustableCode.SDK.BusinessModeling.Events;
 /// </summary>
 public sealed record BusinessEventOutboxMessage(
     Guid MessageId,
+    Guid EventId,
     string StreamName,
     string EventName,
     IBusinessEvent BusinessEvent,

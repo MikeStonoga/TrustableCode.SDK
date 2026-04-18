@@ -20,6 +20,7 @@ public sealed class BusinessEventOutboxBatchTests
         Assert.Equal(nameof(SampleEvent), messages[0].EventName);
         Assert.Equal(enqueuedAt, messages[0].EnqueuedAt);
         Assert.IsType<SampleEvent>(messages[0].BusinessEvent);
+        Assert.Equal(messages[0].BusinessEvent.EventId, messages[0].EventId);
     }
 
     private sealed class SampleSource : BusinessEntity
