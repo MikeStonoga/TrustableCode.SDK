@@ -2,6 +2,7 @@ using TrustableCode.SDK.BusinessModeling;
 using TrustableCode.SDK.BusinessModeling.Invariants;
 using TrustableCode.SDK.BusinessModeling.Observability;
 using TrustableCode.SDK.BusinessModeling.Example.Invoicing.Invariants;
+using TrustableCode.SDK.BusinessModeling.Example.Invoicing.Transitions;
 
 namespace TrustableCode.SDK.BusinessModeling.Example.Invoicing;
 
@@ -62,19 +63,23 @@ public sealed class Invoice : AggregateRoot
             throw;
         }
 
-        var previousStatus = Status;
         RefundedAmount = RefundedAmount + requirement.RefundAmount;
-        Status = RefundedAmount.Amount == CapturedAmount.Amount
+        var targetStatus = RefundedAmount.Amount == CapturedAmount.Amount
             ? InvoiceStatus.Refunded
             : InvoiceStatus.PartiallyRefunded;
+        var executedTransition = new RefundInvoiceTransition(
+            targetStatus: targetStatus,
+            currentStateAccessor: () => Status,
+            apply: next => Status = next)
+            .Execute();
 
         RecordBusinessEvent(new InvoiceRefunded(Id, requirement.RefundAmount.Amount, requirement.Reason, requirement.RequestedAt));
 
         var evidence = new BusinessTransitionEvidence<InvoiceStatus>(
             ModelName: nameof(Invoice),
-            TransitionName: "Refund",
-            PreviousState: previousStatus,
-            CurrentState: Status,
+            TransitionName: executedTransition.Name,
+            PreviousState: executedTransition.From,
+            CurrentState: executedTransition.To,
             CorrelationId: requirement.CorrelationId,
             ObservedAt: requirement.RequestedAt);
 

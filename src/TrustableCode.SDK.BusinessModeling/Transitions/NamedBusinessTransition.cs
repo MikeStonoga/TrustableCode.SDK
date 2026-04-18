@@ -5,37 +5,29 @@ namespace TrustableCode.SDK.BusinessModeling.Transitions;
 /// <summary>
 /// Encapsulates an explicitly named transition that both guards and applies a state change.
 /// </summary>
-public sealed class NamedBusinessTransition<TState>
+public abstract class NamedBusinessTransition<TState>
     where TState : notnull
 {
     private readonly Func<TState> _currentStateAccessor;
     private readonly Action<TState> _apply;
-    private readonly Func<TState, bool> _canTransition;
-    private readonly Func<TState, BusinessRuleViolationException> _exceptionFactory;
 
     /// <summary>
     /// Creates a named transition that validates and applies a state change atomically.
     /// </summary>
-    public NamedBusinessTransition(
+    protected NamedBusinessTransition(
         string name,
         TState to,
         Func<TState> currentStateAccessor,
-        Action<TState> apply,
-        Func<TState, bool> canTransition,
-        Func<TState, BusinessRuleViolationException> exceptionFactory)
+        Action<TState> apply)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(currentStateAccessor);
         ArgumentNullException.ThrowIfNull(apply);
-        ArgumentNullException.ThrowIfNull(canTransition);
-        ArgumentNullException.ThrowIfNull(exceptionFactory);
 
         Name = name;
         To = to;
         _currentStateAccessor = currentStateAccessor;
         _apply = apply;
-        _canTransition = canTransition;
-        _exceptionFactory = exceptionFactory;
     }
 
     /// <summary>
@@ -49,15 +41,25 @@ public sealed class NamedBusinessTransition<TState>
     public TState To { get; }
 
     /// <summary>
+    /// Determines whether the current state may move through this transition.
+    /// </summary>
+    protected abstract bool CanTransitionFrom(TState currentState);
+
+    /// <summary>
+    /// Creates the business exception that explains why the transition was rejected.
+    /// </summary>
+    protected abstract BusinessRuleViolationException CreateException(TState currentState);
+
+    /// <summary>
     /// Applies the transition after validating the current state.
     /// </summary>
     public BusinessTransition<TState> Execute()
     {
         var from = _currentStateAccessor();
 
-        if (!_canTransition(from))
+        if (!CanTransitionFrom(from))
         {
-            throw _exceptionFactory(from);
+            throw CreateException(from);
         }
 
         _apply(To);

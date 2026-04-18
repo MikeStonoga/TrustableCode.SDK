@@ -33,16 +33,27 @@ public sealed class NamedBusinessTransitionTests
 
         public BusinessTransition<InvoiceStatus> PutOnHold()
         {
-            var transition = new NamedBusinessTransition<InvoiceStatus>(
-                name: "PutOnHold",
-                to: InvoiceStatus.OnHold,
+            return new PutInvoiceOnHoldTransition(
                 currentStateAccessor: () => Status,
-                apply: next => Status = next,
-                canTransition: current => current is InvoiceStatus.Pending or InvoiceStatus.Error,
-                exceptionFactory: _ => new BusinessRuleViolationException("Invoice may only be put on hold from Pending or Error."));
-
-            return transition.Execute();
+                apply: next => Status = next)
+                .Execute();
         }
+    }
+
+    private sealed class PutInvoiceOnHoldTransition(
+        Func<InvoiceStatus> currentStateAccessor,
+        Action<InvoiceStatus> apply)
+        : NamedBusinessTransition<InvoiceStatus>(
+            name: "PutOnHold",
+            to: InvoiceStatus.OnHold,
+            currentStateAccessor: currentStateAccessor,
+            apply: apply)
+    {
+        protected override bool CanTransitionFrom(InvoiceStatus currentState)
+            => currentState is InvoiceStatus.Pending or InvoiceStatus.Error;
+
+        protected override BusinessRuleViolationException CreateException(InvoiceStatus currentState)
+            => new("Invoice may only be put on hold from Pending or Error.");
     }
 
     private enum InvoiceStatus

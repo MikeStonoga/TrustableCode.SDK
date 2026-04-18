@@ -1,9 +1,9 @@
 using TrustableCode.SDK.BusinessModeling;
 using TrustableCode.SDK.BusinessModeling.Invariants;
 using TrustableCode.SDK.BusinessModeling.Observability;
-using TrustableCode.SDK.BusinessModeling.Transitions;
 using TrustableCode.SDK.BusinessModeling.Example.Ordering.Exceptions;
 using TrustableCode.SDK.BusinessModeling.Example.Ordering.Invariants;
+using TrustableCode.SDK.BusinessModeling.Example.Ordering.Transitions;
 
 namespace TrustableCode.SDK.BusinessModeling.Example.Ordering;
 
@@ -46,15 +46,10 @@ public sealed class Order : AggregateRoot
             .Collect(new PaymentMustBeCapturedBeforePreparingOrderForShippingRule(requirement.PaymentCaptured))
             .Collect(new StockMustBeReservedBeforePreparingOrderForShippingRule(requirement.StockReserved)));
 
-        var transition = new NamedBusinessTransition<OrderStatus>(
-            name: "PrepareForShipping",
-            to: OrderStatus.ReadyForShipping,
+        var executedTransition = new PrepareOrderForShippingTransition(
             currentStateAccessor: () => Status,
-            apply: next => Status = next,
-            canTransition: current => current == OrderStatus.Paid,
-            exceptionFactory: _ => new OrderMustBePaidBeforePreparingForShippingException());
-
-        var executedTransition = transition.Execute();
+            apply: next => Status = next)
+            .Execute();
         RecordBusinessEvent(new OrderPreparedForShipping(Id, requirement.RequestedAt));
 
         var evidence = new BusinessTransitionEvidence<OrderStatus>(
@@ -73,14 +68,16 @@ public sealed class Order : AggregateRoot
     {
         Ensure(new ShippedOrdersCannotBeCancelledRule(Status));
 
-        var previous = Status;
-        Status = OrderStatus.Cancelled;
+        var executedTransition = new CancelOrderTransition(
+            currentStateAccessor: () => Status,
+            apply: next => Status = next)
+            .Execute();
 
         var evidence = new BusinessTransitionEvidence<OrderStatus>(
             ModelName: nameof(Order),
-            TransitionName: "Cancel",
-            PreviousState: previous,
-            CurrentState: Status,
+            TransitionName: executedTransition.Name,
+            PreviousState: executedTransition.From,
+            CurrentState: executedTransition.To,
             CorrelationId: requirement.CorrelationId,
             ObservedAt: requirement.RequestedAt);
 
