@@ -28,6 +28,10 @@ Core primitives for explicit business modeling:
 - `BusinessTransition<TState>`
 - `NamedBusinessTransition<TState>`
 - `BusinessEvent`
+- `BusinessEventOutboxMessage`
+- `IBusinessEventOutbox`
+- `IBusinessEventPublisher`
+- `IBusinessTransactionRunner`
 
 ### `TrustableCode.SDK.BusinessModeling.Observability`
 
@@ -69,6 +73,7 @@ The sample shows:
 - specialized business exceptions
 - named transitions
 - business events
+- transactional outbox persistence before publication
 - specialized business transition evidence
 - an application service that persists behavior and emits evidence
 
