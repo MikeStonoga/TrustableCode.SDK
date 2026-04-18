@@ -5,5 +5,5 @@ namespace TrustableCode.SDK.BusinessModeling.Example.Invoicing;
 
 public sealed record InvoiceApprovalCompensationResult(
     CompensationRequest<InvoiceApprovalId> CompensationRequest,
-    BusinessTransitionEvidence<InvoiceApprovalStatus> TransitionEvidence,
+    InvoiceApprovalCompensationScheduledEvidence TransitionEvidence,
     CompensationScheduledEvidence CompensationEvidence);

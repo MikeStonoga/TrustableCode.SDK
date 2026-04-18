@@ -39,7 +39,7 @@ public sealed class Order : AggregateRoot
     public static Order Create(CreateOrderRequirement requirement)
         => new(requirement);
 
-    public BusinessTransitionEvidence<OrderStatus> PrepareForShipping(PrepareOrderForShippingRequirement requirement)
+    public OrderPreparedForShippingEvidence PrepareForShipping(PrepareOrderForShippingRequirement requirement)
     {
         EnsureAll(notification => notification
             .Collect(new OrderMustBePaidBeforePreparingForShippingRule(Status))
@@ -52,9 +52,7 @@ public sealed class Order : AggregateRoot
             .Execute();
         RecordBusinessEvent(new OrderPreparedForShipping(Id, requirement.RequestedAt));
 
-        var evidence = new BusinessTransitionEvidence<OrderStatus>(
-            ModelName: nameof(Order),
-            TransitionName: executedTransition.Name,
+        var evidence = new OrderPreparedForShippingEvidence(
             PreviousState: executedTransition.From,
             CurrentState: executedTransition.To,
             CorrelationId: requirement.CorrelationId,
@@ -64,7 +62,7 @@ public sealed class Order : AggregateRoot
         return evidence;
     }
 
-    public BusinessTransitionEvidence<OrderStatus> Cancel(CancelOrderRequirement requirement)
+    public OrderCancelledEvidence Cancel(CancelOrderRequirement requirement)
     {
         Ensure(new ShippedOrdersCannotBeCancelledRule(Status));
 
@@ -73,9 +71,7 @@ public sealed class Order : AggregateRoot
             apply: next => Status = next)
             .Execute();
 
-        var evidence = new BusinessTransitionEvidence<OrderStatus>(
-            ModelName: nameof(Order),
-            TransitionName: executedTransition.Name,
+        var evidence = new OrderCancelledEvidence(
             PreviousState: executedTransition.From,
             CurrentState: executedTransition.To,
             CorrelationId: requirement.CorrelationId,

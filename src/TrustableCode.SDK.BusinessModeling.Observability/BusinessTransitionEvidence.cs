@@ -34,7 +34,7 @@ public interface IBusinessTransitionEvidence : IBusinessEvidence
 /// <summary>
 /// Observable evidence that a business model changed from one meaningful state to another.
 /// </summary>
-public sealed record BusinessTransitionEvidence<TState>(
+public record BusinessTransitionEvidence<TState>(
     string ModelName,
     string TransitionName,
     TState PreviousState,

@@ -42,7 +42,7 @@ public sealed class Invoice : AggregateRoot
 
     public InvariantViolationEvidence? LastInvariantViolationEvidence { get; private set; }
 
-    public BusinessTransitionEvidence<InvoiceStatus> Refund(RefundInvoiceRequirement requirement)
+    public InvoiceRefundedEvidence Refund(RefundInvoiceRequirement requirement)
     {
         try
         {
@@ -75,9 +75,7 @@ public sealed class Invoice : AggregateRoot
 
         RecordBusinessEvent(new InvoiceRefunded(Id, requirement.RefundAmount.Amount, requirement.Reason, requirement.RequestedAt));
 
-        var evidence = new BusinessTransitionEvidence<InvoiceStatus>(
-            ModelName: nameof(Invoice),
-            TransitionName: executedTransition.Name,
+        var evidence = new InvoiceRefundedEvidence(
             PreviousState: executedTransition.From,
             CurrentState: executedTransition.To,
             CorrelationId: requirement.CorrelationId,

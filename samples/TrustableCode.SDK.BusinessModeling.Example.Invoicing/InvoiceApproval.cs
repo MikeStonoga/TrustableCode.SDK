@@ -57,9 +57,7 @@ public sealed class InvoiceApproval : AggregateRoot
             decision.DownstreamRejectionReason,
             requirement.RequestedAt));
 
-        var transitionEvidence = new BusinessTransitionEvidence<InvoiceApprovalStatus>(
-            ModelName: nameof(InvoiceApproval),
-            TransitionName: executedTransition.Name,
+        var transitionEvidence = new InvoiceApprovalCompensationScheduledEvidence(
             PreviousState: executedTransition.From,
             CurrentState: executedTransition.To,
             CorrelationId: requirement.CorrelationId,

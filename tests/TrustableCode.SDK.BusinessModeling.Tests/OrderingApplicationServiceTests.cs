@@ -23,7 +23,7 @@ public sealed class OrderingApplicationServiceTests
         Assert.Equal("PrepareForShipping", result.CompletedTransition);
         Assert.Equal(1, result.EmittedBusinessEvents);
         Assert.Single(sink.Items);
-        Assert.IsType<BusinessTransitionEvidence<OrderStatus>>(sink.Items[0]);
+        Assert.IsType<OrderPreparedForShippingEvidence>(sink.Items[0]);
     }
 
     private sealed class InMemoryBusinessEvidenceSink : IBusinessEvidenceSink

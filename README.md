@@ -69,7 +69,7 @@ The sample shows:
 - specialized business exceptions
 - named transitions
 - business events
-- business transition evidence
+- specialized business transition evidence
 - an application service that persists behavior and emits evidence
 
 ## Current status
