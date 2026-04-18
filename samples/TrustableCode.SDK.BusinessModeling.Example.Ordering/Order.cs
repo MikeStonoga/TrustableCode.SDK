@@ -71,6 +71,8 @@ public sealed class Order : AggregateRoot
             apply: next => Status = next)
             .Execute();
 
+        RecordBusinessEvent(new OrderCancelled(Id, requirement.RequestedAt));
+
         var evidence = new OrderCancelledEvidence(
             PreviousState: executedTransition.From,
             CurrentState: executedTransition.To,

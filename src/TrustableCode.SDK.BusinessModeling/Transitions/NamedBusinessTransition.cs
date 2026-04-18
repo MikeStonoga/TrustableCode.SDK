@@ -4,6 +4,8 @@ namespace TrustableCode.SDK.BusinessModeling.Transitions;
 
 /// <summary>
 /// Encapsulates an explicitly named transition that both guards and applies a state change.
+/// The transition models the business move itself. If that move is significant to others, emit a business event.
+/// If that move must be auditable or diagnosable, emit business evidence as a separate concern.
 /// </summary>
 public abstract class NamedBusinessTransition<TState>
     where TState : notnull

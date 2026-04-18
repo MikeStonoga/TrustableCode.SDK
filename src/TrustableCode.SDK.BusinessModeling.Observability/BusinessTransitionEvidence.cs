@@ -33,6 +33,8 @@ public interface IBusinessTransitionEvidence : IBusinessEvidence
 
 /// <summary>
 /// Observable evidence that a business model changed from one meaningful state to another.
+/// Unlike a business event, which communicates a business fact for other parts of the system to react to,
+/// transition evidence exists to make the change observable, auditable, and diagnosable after it happened.
 /// </summary>
 public record BusinessTransitionEvidence<TState>(
     string ModelName,

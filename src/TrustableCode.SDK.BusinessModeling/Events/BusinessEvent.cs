@@ -2,5 +2,8 @@ namespace TrustableCode.SDK.BusinessModeling.Events;
 
 /// <summary>
 /// Base record for business events captured by entities and aggregates.
+/// A business event communicates that a meaningful business fact happened and may matter to
+/// downstream workflows, integrations, or other models. Unlike business evidence, which serves
+/// observability and auditability, a business event represents business meaning that others may react to.
 /// </summary>
 public abstract record BusinessEvent(DateTimeOffset OccurredAt) : IBusinessEvent;
