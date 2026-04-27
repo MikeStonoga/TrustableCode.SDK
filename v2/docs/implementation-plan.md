@@ -22,9 +22,9 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 | 2. Criar estrutura v2 | Concluido | Solution, projeto core, testes e docs iniciais em `v2/`. |
 | 3. Trustable Model Descriptor | Parcial | API inicial implementada e validada em um primeiro sample `Ordering`. Ainda falta validar ergonomia com comportamento executavel. |
 | 4. Transicoes governadas | Parcial | `GovernedTransition` executa pre-condicoes/invariantes, aplica estado, retorna resultado, declara eventos/evidencias e suporta politica basica de repeticao. Transicoes de dominio devem ser classes especializadas que usam `GovernedTransition` internamente. |
-| 5. Invariantes fortes | Parcial | Invariantes com codigo estavel, severidade, descriptor e regra executavel implementados. Ainda faltam sugestoes de teste e evidencia estruturada de violacao. |
-| 6. Fronteiras e admissao | Parcial | `BusinessAdmission` aceita/rejeita input externo antes de converter para intencao de negocio. Ainda falta evidencia estruturada de rejeicao e integracao com observabilidade. |
-| 7. Efeitos colaterais e idempotencia | Pendente | Contratos para efeitos planejados, persistidos, publicados, confirmados e compensados. |
+| 5. Invariantes fortes | Parcial | Invariantes com codigo estavel, severidade, descriptor, regra executavel e evidencia estruturada de violacao. Ainda faltam sugestoes de teste e integracao com observabilidade. |
+| 6. Fronteiras e admissao | Parcial | `BusinessAdmission` aceita/rejeita input externo antes de converter para intencao de negocio e emite evidencia estruturada de rejeicao. Ainda falta integracao com observabilidade. |
+| 7. Efeitos colaterais e idempotencia | Parcial | `GovernedSideEffect` executa efeitos com chave de idempotencia e evidencia estruturada. Ainda faltam efeitos planejados/persistidos/publicados/confirmados e compensacao. |
 | 8. Observabilidade como evidencia | Pendente | Sinks e contratos orientados a evidencia de negocio, nao ruido tecnico. |
 | 9. Pacote de contexto para agentes | Parcial | `AgentContextPacket` gera markdown inicial para agentes e revisores. Ainda falta template completo por area critica e integracao com samples. |
 | 10. Samples alinhados ao livro | Parcial | Primeiro sample semantico `Ordering` criado. Ainda faltam exemplos por apendice: unsafe, trustable manual e trustable usando SDK. |
@@ -41,9 +41,9 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 
 ## Proxima Etapa
 
-Evoluir evidencia estruturada para violacoes de invariantes e rejeicoes de fronteira.
+Evoluir observabilidade como evidencia: sinks para capturar `BusinessEvidence` e produzir logs/traces sem misturar ruido tecnico com significado de negocio.
 
-Depois disso, iniciar efeitos colaterais governados e idempotencia como primitives proprias, conectadas aos resultados de transicao.
+Depois disso, aprofundar efeitos colaterais para diferenciar efeitos planejados, persistidos, publicados, confirmados e compensados.
 
 ## Implementado Nesta Iteracao
 
@@ -86,3 +86,16 @@ Depois disso, iniciar efeitos colaterais governados e idempotencia como primitiv
 - `PrepareOrderForShippingTransition` criado como classe especializada de dominio, recebendo `Order` no construtor.
 - `Order.PrepareForShipping` passou a chamar `new PrepareOrderForShippingTransition(this)`.
 - Testes validam admissao aceita, rejeicao por status arbitrario, rejeicao sem correlacao e violacoes de invariantes.
+
+## Implementado Na Iteracao De Evidencia E Side Effects
+
+- `BusinessEvidence` criado como evidencia estruturada comum da v2.
+- `InvariantEvaluation` passou a gerar evidencia estruturada de violacao.
+- `AdmissionResult` passou a carregar evidencia estruturada de rejeicao.
+- `BusinessAdmission` passou a emitir evidencia para regras de fronteira rejeitadas.
+- `TransitionExecutionResult` passou a carregar evidencia estruturada de rejeicao.
+- `GovernedTransition` passou a emitir evidencia para rejeicoes por estado invalido e invariantes violados.
+- `GovernedSideEffect<TContext>` criado para executar efeitos externos com idempotencia e evidencia.
+- `IIdempotencyLedger` e `InMemoryIdempotencyLedger` criados.
+- Sample `Ordering` ganhou `NotifyFulfillmentSideEffect` e `FulfillmentNotification`.
+- Testes validam evidencia estruturada de admissao, invariantes, transicoes rejeitadas e side effects idempotentes.

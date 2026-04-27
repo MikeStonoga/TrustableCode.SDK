@@ -8,12 +8,20 @@ public sealed class AdmissionRule<TInput>
 {
     private readonly Func<TInput, bool> _isSatisfied;
 
-    public AdmissionRule(string code, string description, Func<TInput, bool> isSatisfied, string rejectionReason)
+    public AdmissionRule(
+        string code,
+        string description,
+        Func<TInput, bool> isSatisfied,
+        string rejectionReason,
+        string? rejectionEvidenceName = null)
     {
         Code = Require.Text(code, nameof(code));
         Description = Require.Text(description, nameof(description));
         _isSatisfied = isSatisfied ?? throw new ArgumentNullException(nameof(isSatisfied));
         RejectionReason = Require.Text(rejectionReason, nameof(rejectionReason));
+        RejectionEvidenceName = string.IsNullOrWhiteSpace(rejectionEvidenceName)
+            ? $"{Code}Rejected"
+            : rejectionEvidenceName;
     }
 
     public string Code { get; }
@@ -22,10 +30,11 @@ public sealed class AdmissionRule<TInput>
 
     public string RejectionReason { get; }
 
+    public string RejectionEvidenceName { get; }
+
     public bool IsSatisfiedBy(TInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
         return _isSatisfied(input);
     }
 }
-

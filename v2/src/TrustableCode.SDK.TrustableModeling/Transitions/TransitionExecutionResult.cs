@@ -1,3 +1,5 @@
+using TrustableCode.SDK.TrustableModeling.Evidence;
+
 namespace TrustableCode.SDK.TrustableModeling.Transitions;
 
 /// <summary>
@@ -12,6 +14,7 @@ public sealed record TransitionExecutionResult<TState>
         TState currentState,
         TransitionExecutionStatus status,
         IEnumerable<string>? rejectionReasons = null,
+        IEnumerable<BusinessEvidence>? rejectionEvidence = null,
         IEnumerable<string>? producedEvents = null,
         IEnumerable<string>? producedEvidence = null)
     {
@@ -20,6 +23,7 @@ public sealed record TransitionExecutionResult<TState>
         CurrentState = currentState;
         Status = status;
         RejectionReasons = Require.TextList(rejectionReasons);
+        RejectionEvidence = rejectionEvidence?.ToArray() ?? [];
         ProducedEvents = Require.TextList(producedEvents);
         ProducedEvidence = Require.TextList(producedEvidence);
     }
@@ -36,8 +40,9 @@ public sealed record TransitionExecutionResult<TState>
 
     public IReadOnlyList<string> RejectionReasons { get; }
 
+    public IReadOnlyList<BusinessEvidence> RejectionEvidence { get; }
+
     public IReadOnlyList<string> ProducedEvents { get; }
 
     public IReadOnlyList<string> ProducedEvidence { get; }
 }
-

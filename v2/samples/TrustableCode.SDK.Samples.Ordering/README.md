@@ -11,3 +11,5 @@ The descriptor names the authoritative state, valid transitions, invariants, bou
 The sample also includes a small executable `Order` model. The aggregate delegates to a specialized `PrepareOrderForShippingTransition`, which receives the aggregate through `new PrepareOrderForShippingTransition(this)` and uses `GovernedTransition` internally.
 
 The boundary sample uses `PrepareOrderForShippingAdmission` to turn external input into admitted business intent only after boundary rules pass.
+
+`NotifyFulfillmentSideEffect` shows the first governed side-effect shape: execute once per idempotency key and emit structured evidence for executed or already-applied attempts.

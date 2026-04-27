@@ -1,3 +1,6 @@
+using TrustableCode.SDK.TrustableModeling.Evidence;
+using TrustableCode.SDK.TrustableModeling.Modeling;
+
 namespace TrustableCode.SDK.TrustableModeling.Admission;
 
 /// <summary>
@@ -26,14 +29,29 @@ public sealed class BusinessAdmission<TInput, TAccepted>
     {
         ArgumentNullException.ThrowIfNull(input);
 
-        var rejectionReasons = _rules
+        var rejectedRules = _rules
             .Where(rule => !rule.IsSatisfiedBy(input))
+            .ToArray();
+
+        var rejectionReasons = rejectedRules
             .Select(rule => rule.RejectionReason)
             .ToArray();
 
+        var rejectionEvidence = rejectedRules
+            .Select(rule => new BusinessEvidence(
+                name: rule.RejectionEvidenceName,
+                kind: EvidenceKind.BoundaryRejection,
+                message: rule.RejectionReason,
+                metadata: new Dictionary<string, string>
+                {
+                    ["admission.name"] = Name,
+                    ["admission.rule.code"] = rule.Code,
+                    ["admission.rule.description"] = rule.Description
+                }))
+            .ToArray();
+
         return rejectionReasons.Length > 0
-            ? AdmissionResult<TAccepted>.Rejected(rejectionReasons)
+            ? AdmissionResult<TAccepted>.Rejected(rejectionReasons, rejectionEvidence)
             : AdmissionResult<TAccepted>.Accepted(_accept(input));
     }
 }
-

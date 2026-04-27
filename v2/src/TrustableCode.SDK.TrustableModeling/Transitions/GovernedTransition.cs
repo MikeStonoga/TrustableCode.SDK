@@ -1,4 +1,6 @@
 using TrustableCode.SDK.TrustableModeling.Invariants;
+using TrustableCode.SDK.TrustableModeling.Evidence;
+using TrustableCode.SDK.TrustableModeling.Modeling;
 
 namespace TrustableCode.SDK.TrustableModeling.Transitions;
 
@@ -66,10 +68,23 @@ public sealed class GovernedTransition<TState, TContext>
         }
 
         var rejectionReasons = new List<string>();
+        var rejectionEvidence = new List<BusinessEvidence>();
 
         if (!EqualityComparer<TState>.Default.Equals(previousState, From))
         {
-            rejectionReasons.Add($"Transition '{Name}' expects state '{From}' but current state is '{previousState}'.");
+            var message = $"Transition '{Name}' expects state '{From}' but current state is '{previousState}'.";
+            rejectionReasons.Add(message);
+            rejectionEvidence.Add(new BusinessEvidence(
+                name: $"{Name}Rejected",
+                kind: EvidenceKind.InvariantViolation,
+                message: message,
+                metadata: new Dictionary<string, string>
+                {
+                    ["transition.name"] = Name,
+                    ["transition.expected_state"] = From.ToString() ?? string.Empty,
+                    ["transition.current_state"] = previousState.ToString() ?? string.Empty,
+                    ["transition.target_state"] = To.ToString() ?? string.Empty
+                }));
         }
 
         foreach (var precondition in _preconditions)
@@ -85,6 +100,7 @@ public sealed class GovernedTransition<TState, TContext>
             .FindViolations(transitionContext))
         {
             rejectionReasons.Add(invariantViolation.Message);
+            rejectionEvidence.Add(invariantViolation.ToEvidence());
         }
 
         if (rejectionReasons.Count > 0)
@@ -94,7 +110,8 @@ public sealed class GovernedTransition<TState, TContext>
                 previousState,
                 previousState,
                 TransitionExecutionStatus.Rejected,
-                rejectionReasons);
+                rejectionReasons,
+                rejectionEvidence);
         }
 
         _applyState(To);

@@ -38,6 +38,9 @@ public sealed class BusinessAdmissionTests
         Assert.Contains(
             "External callers may request shipment preparation, but may not submit an arbitrary target order status.",
             result.RejectionReasons);
+        Assert.Single(result.RejectionEvidence);
+        Assert.Equal("BoundaryMustReceiveIntentNotStatusRejected", result.RejectionEvidence[0].Name);
+        Assert.Equal("PrepareOrderForShippingAdmission", result.RejectionEvidence[0].Metadata["admission.name"]);
     }
 
     [Fact]
@@ -53,6 +56,7 @@ public sealed class BusinessAdmissionTests
 
         Assert.False(result.WasAccepted);
         Assert.Contains("A correlation id is required before order preparation can be admitted.", result.RejectionReasons);
+        Assert.Single(result.RejectionEvidence);
+        Assert.Equal("CorrelationIdRequiredRejected", result.RejectionEvidence[0].Name);
     }
 }
-

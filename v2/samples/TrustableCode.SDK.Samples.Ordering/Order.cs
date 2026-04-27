@@ -1,4 +1,5 @@
 using TrustableCode.SDK.Samples.Ordering.Transitions;
+using TrustableCode.SDK.TrustableModeling.Evidence;
 using TrustableCode.SDK.TrustableModeling.Transitions;
 
 namespace TrustableCode.SDK.Samples.Ordering;
@@ -7,6 +8,7 @@ public sealed class Order
 {
     private readonly List<string> _events = [];
     private readonly List<string> _evidence = [];
+    private readonly List<BusinessEvidence> _businessEvidence = [];
 
     public Order(OrderStatus status)
     {
@@ -18,6 +20,8 @@ public sealed class Order
     public IReadOnlyList<string> Events => _events;
 
     public IReadOnlyList<string> Evidence => _evidence;
+
+    public IReadOnlyList<BusinessEvidence> BusinessEvidence => _businessEvidence;
 
     public TransitionExecutionResult<OrderStatus> PrepareForShipping(PrepareOrderForShippingRequirement requirement)
     {
@@ -31,6 +35,7 @@ public sealed class Order
         if (result.Status == TransitionExecutionStatus.Rejected)
         {
             _evidence.Add("OrderPreparationRejectedEvidence");
+            _businessEvidence.AddRange(result.RejectionEvidence);
         }
 
         return result;

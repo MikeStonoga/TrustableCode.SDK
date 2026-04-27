@@ -25,6 +25,10 @@ public sealed class BusinessInvariantTests
         Assert.Single(violations);
         Assert.Equal("StockReservedBeforeShipmentPreparation", violations[0].Code);
         Assert.Equal("Stock must be reserved before the order can be prepared for shipping.", violations[0].Message);
+
+        var evidence = violations[0].ToEvidence("corr-invariant-1");
+        Assert.Equal("StockReservedBeforeShipmentPreparationViolation", evidence.Name);
+        Assert.Equal("corr-invariant-1", evidence.CorrelationId);
+        Assert.Equal("StockReservedBeforeShipmentPreparation", evidence.Metadata["invariant.code"]);
     }
 }
-

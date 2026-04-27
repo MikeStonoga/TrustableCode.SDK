@@ -41,6 +41,10 @@ public sealed class GovernedTransitionTests
         Assert.Contains("Payment must be captured before the order can be prepared for shipping.", result.RejectionReasons);
         Assert.Contains("Stock must be reserved before the order can be prepared for shipping.", result.RejectionReasons);
         Assert.Contains("OrderPreparationRejectedEvidence", order.Evidence);
+        Assert.Equal(2, result.RejectionEvidence.Count);
+        Assert.Equal(2, order.BusinessEvidence.Count);
+        Assert.Contains(order.BusinessEvidence, evidence => evidence.Name == "PaymentCapturedBeforeShipmentPreparationViolation");
+        Assert.Contains(order.BusinessEvidence, evidence => evidence.Name == "StockReservedBeforeShipmentPreparationViolation");
         Assert.Empty(order.Events);
     }
 
@@ -60,4 +64,3 @@ public sealed class GovernedTransitionTests
         Assert.Empty(order.Events);
     }
 }
-

@@ -1,4 +1,5 @@
 using TrustableCode.SDK.TrustableModeling.Modeling;
+using TrustableCode.SDK.TrustableModeling.Evidence;
 
 namespace TrustableCode.SDK.TrustableModeling.Invariants;
 
@@ -30,5 +31,18 @@ public sealed record InvariantEvaluation
     public bool IsPreserved { get; }
 
     public string Message { get; }
-}
 
+    public BusinessEvidence ToEvidence(string? correlationId = null)
+        => new(
+            name: $"{Code}Violation",
+            kind: EvidenceKind.InvariantViolation,
+            message: Message,
+            correlationId: correlationId,
+            metadata: new Dictionary<string, string>
+            {
+                ["invariant.code"] = Code,
+                ["invariant.name"] = Name,
+                ["invariant.severity"] = Severity.ToString(),
+                ["invariant.preserved"] = IsPreserved.ToString()
+            });
+}
