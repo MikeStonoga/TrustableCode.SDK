@@ -18,3 +18,5 @@ The current starting package is:
 See `docs/implementation-plan.md` for the living plan and status.
 
 See `docs/evidence-conventions.md` for the logging and tracing field conventions used by `BusinessEvidence`.
+
+See `docs/testing-helpers.md` for framework-neutral checks used to test transitions, admissions, invariants, side effects, and evidence.

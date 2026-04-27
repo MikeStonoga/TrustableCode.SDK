@@ -26,9 +26,9 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 | 6. Fronteiras e admissao | Parcial | `BusinessAdmission` aceita/rejeita input externo antes de converter para intencao de negocio e emite evidencia estruturada de rejeicao. Sample `Ordering` cobre fronteiras de criacao, pagamento, preparacao, envio, entrega e cancelamento. Ainda falta helper dedicado para testes de admissao. |
 | 7. Efeitos colaterais e idempotencia | Parcial | `GovernedSideEffect` executa efeitos com chave de idempotencia e evidencia estruturada. `GovernedSideEffectLifecycle` diferencia efeitos planejados, persistidos, publicados, confirmados e compensados. Ainda falta integrar outbox/worker real. |
 | 8. Observabilidade como evidencia | Parcial | Sinks, recorder, adapter `ActivitySource`, adapter `ILogger` e convencoes de campos documentadas. Ainda falta consolidar com cenarios distribuidos. |
-| 9. Pacote de contexto para agentes | Parcial | `AgentContextPacket` gera markdown inicial para agentes e revisores. Ainda falta template completo por area critica e integracao com samples. |
+| 9. Pacote de contexto para agentes | Parcial | `AgentContextPacket` gera markdown com ordem de leitura, fluxo esperado, detalhes de transicoes, fronteiras, rejeicoes, side effects, evidencias e checklist de mudanca. Ainda falta exportar exemplos prontos por sample. |
 | 10. Samples alinhados ao livro | Parcial | Sample `Ordering` agora cobre criacao via factory e fluxo principal do pedido ate entrega/cancelamento. Ainda faltam exemplos por apendice: unsafe, trustable manual e trustable usando SDK. |
-| 11. Testes para confianca | Parcial | `TrustableChecks` fornece checks neutros de framework para transicoes, admissoes, invariantes, side effects e evidencia. Ainda faltam builders de cenarios e exemplos de uso em docs. |
+| 11. Testes para confianca | Parcial | `TrustableChecks` fornece checks neutros de framework para transicoes, admissoes, invariantes, side effects e evidencia. Exemplos documentados em `docs/testing-helpers.md`. Ainda faltam builders de cenarios. |
 | 12. Packaging e publicacao | Pendente | NuGet metadata, README de pacote e pipeline de release. |
 
 ## Decisoes Iniciais
@@ -41,9 +41,9 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 
 ## Proxima Etapa
 
-Evoluir `AgentContextPacket` para renderizar um pacote mais completo por area critica, incluindo fluxos felizes, rejeicoes esperadas e pontos de observabilidade.
+Exportar exemplos prontos de `AgentContextPacket` para os samples, para que agentes e revisores possam abrir o contexto sem executar codigo.
 
-Depois disso, documentar os helpers de teste com exemplos curtos baseados no sample `Ordering`.
+Depois disso, avaliar builders de cenarios de teste para reduzir montagem repetitiva no sample `Ordering`.
 
 ## Implementado Nesta Iteracao
 
@@ -175,3 +175,19 @@ Depois disso, documentar os helpers de teste com exemplos curtos baseados no sam
 - Sample `Ordering` ganhou preconditions especializadas em `Transitions/Preconditions`.
 - Transicoes do sample passaram a usar classes como `PaymentMustBeCapturedPrecondition`, `CarrierRequiredPrecondition` e `OrderMustBeCancellablePrecondition` em vez de instanciar a precondition generica.
 - Teste valida que uma precondition especializada pode ser avaliada como regra de invariante de negocio.
+
+## Implementado Na Iteracao De Agent Context Enriquecido
+
+- `AgentContextPacket.ToMarkdown()` passou a renderizar estados iniciais/terminais.
+- Secao de ordem sugerida de leitura adicionada para orientar humanos e agentes antes de alterar codigo.
+- Secao de fluxo esperado de estados adicionada a partir das transicoes declaradas.
+- Transicoes passaram a incluir precondicoes, eventos produzidos e evidencias produzidas no markdown.
+- Fronteiras passaram a incluir regras de admissao e evidencias de rejeicao no markdown.
+- Side effects passaram a exibir consistencia, idempotencia e compensacao.
+- Mapa de rejeicao/observacao e checklist de mudanca adicionados.
+- Teste do contexto de agente protege as novas secoes principais usando o sample `Ordering`.
+
+## Implementado Na Iteracao De Docs Dos Helpers De Teste
+
+- `docs/testing-helpers.md` criado com exemplos curtos para transicao aplicada, transicao rejeitada, admissao, invariante, side effect e evidencia.
+- `v2/README.md` passou a apontar para a documentacao dos helpers de teste.
