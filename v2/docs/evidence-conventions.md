@@ -72,7 +72,8 @@ Good examples:
 - `admission.rule.code`
 - `side_effect.name`
 - `side_effect.status`
+- `side_effect.lifecycle_status`
 - `side_effect.idempotency_key`
+- `side_effect.compensation_reason`
 
 Avoid metadata that only repeats technical plumbing, such as class names, method names, queue library names, or serializer details, unless those details directly explain the business evidence.
-

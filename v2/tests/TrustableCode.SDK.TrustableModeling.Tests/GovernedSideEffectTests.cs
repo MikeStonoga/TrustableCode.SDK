@@ -35,5 +35,61 @@ public sealed class GovernedSideEffectTests
         Assert.Single(notifications);
         Assert.Equal("AlreadyApplied", repeated.Evidence.Metadata["side_effect.status"]);
     }
-}
 
+    [Fact]
+    public void Notify_fulfillment_lifecycle_should_track_planned_persisted_published_and_confirmed_steps()
+    {
+        var store = new InMemorySideEffectLifecycleStore();
+        var lifecycle = new NotifyFulfillmentLifecycle(store);
+        var notification = new FulfillmentNotification("order-1", "corr-lifecycle-1");
+
+        var planned = lifecycle.Plan(notification);
+        var persisted = lifecycle.Persist(notification);
+        var published = lifecycle.Publish(notification);
+        var confirmed = lifecycle.Confirm(notification);
+
+        Assert.Equal(SideEffectLifecycleStatus.Planned, planned.Status);
+        Assert.Equal(SideEffectLifecycleStatus.Persisted, persisted.Status);
+        Assert.Equal(SideEffectLifecycleStatus.Published, published.Status);
+        Assert.Equal(SideEffectLifecycleStatus.Confirmed, confirmed.Status);
+        Assert.Equal("NotifyFulfillment:order-1", confirmed.IdempotencyKey);
+        Assert.Equal("corr-lifecycle-1", confirmed.Evidence.CorrelationId);
+        Assert.Equal("Confirmed", confirmed.Evidence.Metadata["side_effect.lifecycle_status"]);
+        Assert.Equal(4, confirmed.History.Count);
+    }
+
+    [Fact]
+    public void Notify_fulfillment_lifecycle_should_reuse_existing_plan_for_the_same_idempotency_key()
+    {
+        var store = new InMemorySideEffectLifecycleStore();
+        var lifecycle = new NotifyFulfillmentLifecycle(store);
+
+        var first = lifecycle.Plan(new FulfillmentNotification("order-1", "corr-lifecycle-1"));
+        var repeated = lifecycle.Plan(new FulfillmentNotification("order-1", "corr-lifecycle-2"));
+
+        Assert.Same(first, repeated);
+        Assert.Single(store.All());
+        Assert.Equal("corr-lifecycle-1", repeated.Evidence.CorrelationId);
+    }
+
+    [Fact]
+    public void Notify_fulfillment_lifecycle_should_track_compensation()
+    {
+        var store = new InMemorySideEffectLifecycleStore();
+        var lifecycle = new NotifyFulfillmentLifecycle(store);
+        var notification = new FulfillmentNotification("order-1", "corr-lifecycle-1");
+
+        lifecycle.Plan(notification);
+        lifecycle.Persist(notification);
+        lifecycle.Publish(notification);
+        var compensationRequired = lifecycle.RequireCompensation(notification, "Carrier rejected the shipment.");
+        var compensated = lifecycle.Compensate(notification);
+
+        Assert.Equal(SideEffectLifecycleStatus.CompensationRequired, compensationRequired.Status);
+        Assert.Equal(
+            "Carrier rejected the shipment.",
+            compensationRequired.Evidence.Metadata["side_effect.compensation_reason"]);
+        Assert.Equal(SideEffectLifecycleStatus.Compensated, compensated.Status);
+        Assert.Equal(5, compensated.History.Count);
+    }
+}

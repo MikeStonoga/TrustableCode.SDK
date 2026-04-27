@@ -24,7 +24,7 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 | 4. Transicoes governadas | Parcial | `GovernedTransition` executa pre-condicoes/invariantes, aplica estado, retorna resultado, declara eventos/evidencias e suporta politica basica de repeticao. Transicoes de dominio devem ser classes especializadas que usam `GovernedTransition` internamente. |
 | 5. Invariantes fortes | Parcial | Invariantes com codigo estavel, severidade, descriptor, regra executavel e evidencia estruturada de violacao. Ainda faltam sugestoes de teste e integracao com observabilidade. |
 | 6. Fronteiras e admissao | Parcial | `BusinessAdmission` aceita/rejeita input externo antes de converter para intencao de negocio e emite evidencia estruturada de rejeicao. Ainda falta integracao com observabilidade. |
-| 7. Efeitos colaterais e idempotencia | Parcial | `GovernedSideEffect` executa efeitos com chave de idempotencia e evidencia estruturada. Ainda faltam efeitos planejados/persistidos/publicados/confirmados e compensacao. |
+| 7. Efeitos colaterais e idempotencia | Parcial | `GovernedSideEffect` executa efeitos com chave de idempotencia e evidencia estruturada. `GovernedSideEffectLifecycle` diferencia efeitos planejados, persistidos, publicados, confirmados e compensados. Ainda falta integrar outbox/worker real. |
 | 8. Observabilidade como evidencia | Parcial | Sinks, recorder, adapter `ActivitySource`, adapter `ILogger` e convencoes de campos documentadas. Ainda falta consolidar com cenarios distribuidos. |
 | 9. Pacote de contexto para agentes | Parcial | `AgentContextPacket` gera markdown inicial para agentes e revisores. Ainda falta template completo por area critica e integracao com samples. |
 | 10. Samples alinhados ao livro | Parcial | Primeiro sample semantico `Ordering` criado. Ainda faltam exemplos por apendice: unsafe, trustable manual e trustable usando SDK. |
@@ -41,9 +41,9 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 
 ## Proxima Etapa
 
-Avancar efeitos colaterais governados para diferenciar efeitos planejados, persistidos, publicados, confirmados e compensados.
+Aplicar o modelo em um segundo sample para validar que as primitives nao ficaram especificas de `Ordering`.
 
-Depois disso, aplicar o modelo em um segundo sample para validar que as primitives nao ficaram especificas de `Ordering`.
+Depois disso, criar helpers de teste para invariantes, transicoes, fronteiras, side effects e evidencia.
 
 ## Implementado Nesta Iteracao
 
@@ -129,3 +129,13 @@ Depois disso, aplicar o modelo em um segundo sample para validar que as primitiv
 - `ActivitySourceBusinessEvidenceSink` e `LoggerBusinessEvidenceSink` passaram a usar as constantes compartilhadas.
 - `docs/evidence-conventions.md` criado com campos, mapping de severidade, padrao de trace naming e orientacoes de metadata.
 - `v2/README.md` aponta para as convencoes de evidencia.
+
+## Implementado Na Iteracao De Lifecycle De Side Effects
+
+- `SideEffectLifecycleStatus` criado para representar `Planned`, `Persisted`, `Published`, `Confirmed`, `CompensationRequired` e `Compensated`.
+- `SideEffectLifecycleRecord` criado para guardar estado atual, chave de idempotencia, ultima evidencia e historico de evidencias.
+- `ISideEffectLifecycleStore` criado como contrato de persistencia do lifecycle.
+- `InMemorySideEffectLifecycleStore` criado para testes, samples e diagnostico local.
+- `GovernedSideEffectLifecycle<TContext>` criado para planejar e avancar o lifecycle de efeitos externos com evidencia estruturada.
+- Sample `Ordering` ganhou `NotifyFulfillmentLifecycle`, classe especializada que encapsula o primitive generico.
+- Testes validam plano, persistencia, publicacao, confirmacao, reutilizacao por idempotencia e compensacao.
