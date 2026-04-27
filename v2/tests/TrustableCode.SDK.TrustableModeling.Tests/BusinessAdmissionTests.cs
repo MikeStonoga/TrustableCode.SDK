@@ -5,6 +5,43 @@ namespace TrustableCode.SDK.TrustableModeling.Tests;
 public sealed class BusinessAdmissionTests
 {
     [Fact]
+    public void Order_factory_should_create_order_awaiting_payment_after_creation_admission()
+    {
+        var result = OrderFactory.Create(new ExternalCreateOrderRequest(
+            OrderId: "order-1",
+            CustomerId: "customer-1",
+            Lines: [new OrderLine("sku-1", 1)],
+            RequestedStatus: null,
+            CorrelationId: "corr-create-1"));
+
+        Assert.True(result.WasAccepted);
+        Assert.NotNull(result.Value);
+        Assert.Equal(OrderStatus.AwaitingPayment, result.Value.Status);
+        Assert.Equal("order-1", result.Value.OrderId);
+        Assert.Contains("OrderCreated", result.Value.Events);
+        Assert.Contains("OrderCreatedEvidence", result.Value.Evidence);
+    }
+
+    [Fact]
+    public void Order_factory_should_reject_arbitrary_initial_status()
+    {
+        var result = OrderFactory.Create(new ExternalCreateOrderRequest(
+            OrderId: "order-1",
+            CustomerId: "customer-1",
+            Lines: [new OrderLine("sku-1", 1)],
+            RequestedStatus: "PaidAwaitingFulfillment",
+            CorrelationId: "corr-create-2"));
+
+        Assert.False(result.WasAccepted);
+        Assert.Null(result.Value);
+        Assert.Contains(
+            "External callers may create an order, but may not submit an arbitrary initial order status.",
+            result.RejectionReasons);
+        Assert.Single(result.RejectionEvidence);
+        Assert.Equal("OrderCreationRejectedEvidence", result.RejectionEvidence[0].Name);
+    }
+
+    [Fact]
     public void Prepare_order_for_shipping_admission_should_accept_intent_without_target_status()
     {
         var admission = PrepareOrderForShippingAdmission.Create();

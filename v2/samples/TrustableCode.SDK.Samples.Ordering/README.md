@@ -8,7 +8,29 @@ Before implementing behavior, a developer or AI agent should inspect:
 
 The descriptor names the authoritative state, valid transitions, invariants, boundary rules, side effects, evidence, and non-goals that must guide future implementation.
 
-The sample also includes a small executable `Order` model. The aggregate delegates to a specialized `PrepareOrderForShippingTransition`, which receives the aggregate through `new PrepareOrderForShippingTransition(this)` and uses `GovernedTransition` internally.
+The sample also includes an executable `Order` model with the full happy path:
+
+- create through `OrderFactory`
+- wait for payment as `AwaitingPayment`
+- capture payment into `PaidAwaitingFulfillment`
+- prepare for shipping into `ReadyForShipping`
+- ship into `Shipped`
+- deliver into `Delivered`
+- cancel before shipment through a governed cancellation transition
+
+Each business movement is represented by a specialized transition class:
+
+- `CapturePaymentTransition`
+- `PrepareOrderForShippingTransition`
+- `ShipOrderTransition`
+- `DeliverOrderTransition`
+- `CancelOrderTransition`
+
+Each specialized class receives the aggregate through `new SomeTransition(this)` and uses `GovernedTransition` internally.
+
+`OrderFactory` shows creation as admitted business intent: external callers can ask to create an order, but cannot inject an arbitrary initial status.
+
+`Order.Rehydrate` exists for loading an already-known persisted state; new business creation should go through the factory.
 
 The boundary sample uses `PrepareOrderForShippingAdmission` to turn external input into admitted business intent only after boundary rules pass.
 

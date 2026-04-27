@@ -43,7 +43,7 @@ public sealed class BusinessEvidenceSinkTests
     [Fact]
     public void Ordering_evidence_publisher_should_publish_order_business_evidence()
     {
-        var order = new Order(OrderStatus.Paid);
+        var order = Order.Rehydrate(OrderStatus.PaidAwaitingFulfillment);
         order.PrepareForShipping(new PrepareOrderForShippingRequirement(
             PaymentCaptured: false,
             StockReserved: false,

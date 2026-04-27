@@ -27,7 +27,7 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 | 7. Efeitos colaterais e idempotencia | Parcial | `GovernedSideEffect` executa efeitos com chave de idempotencia e evidencia estruturada. `GovernedSideEffectLifecycle` diferencia efeitos planejados, persistidos, publicados, confirmados e compensados. Ainda falta integrar outbox/worker real. |
 | 8. Observabilidade como evidencia | Parcial | Sinks, recorder, adapter `ActivitySource`, adapter `ILogger` e convencoes de campos documentadas. Ainda falta consolidar com cenarios distribuidos. |
 | 9. Pacote de contexto para agentes | Parcial | `AgentContextPacket` gera markdown inicial para agentes e revisores. Ainda falta template completo por area critica e integracao com samples. |
-| 10. Samples alinhados ao livro | Parcial | Primeiro sample semantico `Ordering` criado. Ainda faltam exemplos por apendice: unsafe, trustable manual e trustable usando SDK. |
+| 10. Samples alinhados ao livro | Parcial | Sample `Ordering` agora cobre criacao via factory e fluxo principal do pedido ate entrega/cancelamento. Ainda faltam exemplos por apendice: unsafe, trustable manual e trustable usando SDK. |
 | 11. Testes para confianca | Pendente | Helpers para testar invariantes, transicoes, fronteiras, idempotencia e evidencia. |
 | 12. Packaging e publicacao | Pendente | NuGet metadata, README de pacote e pipeline de release. |
 
@@ -41,7 +41,7 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 
 ## Proxima Etapa
 
-Aplicar o modelo em um segundo sample para validar que as primitives nao ficaram especificas de `Ordering`.
+Completar o sample `Ordering` com fronteiras especializadas para pagamento, envio, entrega e cancelamento.
 
 Depois disso, criar helpers de teste para invariantes, transicoes, fronteiras, side effects e evidencia.
 
@@ -139,3 +139,14 @@ Depois disso, criar helpers de teste para invariantes, transicoes, fronteiras, s
 - `GovernedSideEffectLifecycle<TContext>` criado para planejar e avancar o lifecycle de efeitos externos com evidencia estruturada.
 - Sample `Ordering` ganhou `NotifyFulfillmentLifecycle`, classe especializada que encapsula o primitive generico.
 - Testes validam plano, persistencia, publicacao, confirmacao, reutilizacao por idempotencia e compensacao.
+
+## Implementado Na Iteracao De Ordering Completo
+
+- `OrderStatus` passou a modelar o fluxo principal: `AwaitingPayment`, `PaidAwaitingFulfillment`, `ReadyForShipping`, `Shipped`, `Delivered` e `Cancelled`.
+- `OrderFactory` criado para admitir criacao de pedido e impedir status inicial arbitrario vindo de fronteira externa.
+- Construcao direta de `Order` foi fechada para o sample; `Order.Rehydrate` explicita cenarios de estado ja persistido.
+- `ExternalCreateOrderRequest`, `OrderCreationRequirement` e `OrderLine` criados para representar criacao com significado de negocio.
+- Transicoes especializadas criadas para `CapturePayment`, `ShipOrder`, `DeliverOrder` e `CancelOrder`.
+- `PrepareOrderForShippingTransition` atualizado para partir de `PaidAwaitingFulfillment`.
+- `OrderFulfillmentTrustableModel` atualizado para descrever criacao, pagamento, preparacao, envio, entrega e cancelamento.
+- Testes cobrem criacao via factory, rejeicao de status inicial arbitrario, pagamento, fluxo feliz completo ate entrega e rejeicao de cancelamento apos envio.

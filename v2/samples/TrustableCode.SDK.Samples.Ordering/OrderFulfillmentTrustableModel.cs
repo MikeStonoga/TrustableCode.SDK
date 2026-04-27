@@ -20,16 +20,36 @@ public static class OrderFulfillmentTrustableModel
                 authoritativeState: "Order.Status",
                 states:
                 [
-                    new StateDefinition("Pending", "The order exists but payment has not been captured.", isInitial: true),
-                    new StateDefinition("Paid", "Payment has been captured and fulfillment can be evaluated."),
+                    new StateDefinition("AwaitingPayment", "The order was created and is waiting for payment capture.", isInitial: true),
+                    new StateDefinition("PaidAwaitingFulfillment", "Payment has been captured and fulfillment can be evaluated."),
                     new StateDefinition("ReadyForShipping", "Payment and stock requirements were satisfied and the order can be handed to shipping."),
-                    new StateDefinition("Shipped", "The order has left fulfillment.", isTerminal: true),
+                    new StateDefinition("Shipped", "The order has left fulfillment and is in carrier custody."),
+                    new StateDefinition("Delivered", "The carrier or customer confirmed delivery.", isTerminal: true),
                     new StateDefinition("Cancelled", "The order was intentionally stopped before shipment.", isTerminal: true)
                 ]))
             .AddTransition(new BusinessTransitionDescriptor(
+                name: "CreateOrder",
+                fromState: "External intent",
+                toState: "AwaitingPayment",
+                description: "Creates an order through a factory after the creation boundary admits order intent.",
+                preconditions:
+                [
+                    "The request must identify the order and customer.",
+                    "At least one order line must be present.",
+                    "External callers may not provide an arbitrary initial status."
+                ],
+                producedEvents:
+                [
+                    "OrderCreated"
+                ],
+                producedEvidence:
+                [
+                    "OrderCreatedEvidence"
+                ]))
+            .AddTransition(new BusinessTransitionDescriptor(
                 name: "CapturePayment",
-                fromState: "Pending",
-                toState: "Paid",
+                fromState: "AwaitingPayment",
+                toState: "PaidAwaitingFulfillment",
                 description: "Moves an order into the paid state after payment capture is confirmed.",
                 preconditions:
                 [
@@ -46,7 +66,7 @@ public static class OrderFulfillmentTrustableModel
                 ]))
             .AddTransition(new BusinessTransitionDescriptor(
                 name: "PrepareForShipping",
-                fromState: "Paid",
+                fromState: "PaidAwaitingFulfillment",
                 toState: "ReadyForShipping",
                 description: "Moves a paid order into shipment readiness after stock is reserved.",
                 preconditions:
@@ -64,8 +84,43 @@ public static class OrderFulfillmentTrustableModel
                     "OrderPreparedForShippingEvidence"
                 ]))
             .AddTransition(new BusinessTransitionDescriptor(
+                name: "ShipOrder",
+                fromState: "ReadyForShipping",
+                toState: "Shipped",
+                description: "Moves an order into carrier custody once shipment identity is known.",
+                preconditions:
+                [
+                    "A carrier must be selected.",
+                    "A tracking code must be assigned."
+                ],
+                producedEvents:
+                [
+                    "OrderShipped"
+                ],
+                producedEvidence:
+                [
+                    "OrderShippedEvidence"
+                ]))
+            .AddTransition(new BusinessTransitionDescriptor(
+                name: "DeliverOrder",
+                fromState: "Shipped",
+                toState: "Delivered",
+                description: "Closes fulfillment after proof of delivery is captured.",
+                preconditions:
+                [
+                    "Proof of delivery must be captured."
+                ],
+                producedEvents:
+                [
+                    "OrderDelivered"
+                ],
+                producedEvidence:
+                [
+                    "OrderDeliveredEvidence"
+                ]))
+            .AddTransition(new BusinessTransitionDescriptor(
                 name: "Cancel",
-                fromState: "Pending or Paid",
+                fromState: "AwaitingPayment, PaidAwaitingFulfillment, or ReadyForShipping",
                 toState: "Cancelled",
                 description: "Stops the order before it becomes shipped.",
                 preconditions:
@@ -92,6 +147,23 @@ public static class OrderFulfillmentTrustableModel
                 code: "ShippedOrdersCannotBeCancelled",
                 name: "Shipped orders cannot be cancelled",
                 description: "Once an order is shipped, cancellation must be represented through a different business process."))
+            .AddInvariant(new InvariantDescriptor(
+                code: "DeliveryRequiresShipment",
+                name: "Delivery requires shipment",
+                description: "An order cannot be delivered unless it has already been shipped."))
+            .AddBoundary(new BoundaryContract(
+                name: "CreateOrderFactory",
+                description: "Admits external order creation intent and produces an order awaiting payment.",
+                admissionRules:
+                [
+                    "The caller must identify order and customer.",
+                    "The caller must provide at least one positive-quantity line.",
+                    "The caller may not provide initial status."
+                ],
+                rejectionEvidence:
+                [
+                    "OrderCreationRejectedEvidence"
+                ]))
             .AddBoundary(new BoundaryContract(
                 name: "PrepareOrderForShippingRequirement",
                 description: "Admits intent to prepare an order for shipping, not arbitrary status mutation.",
@@ -128,9 +200,25 @@ public static class OrderFulfillmentTrustableModel
                 requiresIdempotencyKey: true,
                 requiresCompensation: true))
             .AddEvidence(new EvidenceContract(
+                name: "OrderCreatedEvidence",
+                kind: EvidenceKind.Transition,
+                description: "Records order creation through the factory and the initial awaiting-payment state."))
+            .AddEvidence(new EvidenceContract(
+                name: "OrderPaymentCapturedEvidence",
+                kind: EvidenceKind.Transition,
+                description: "Records confirmed payment capture and movement into fulfillment."))
+            .AddEvidence(new EvidenceContract(
                 name: "OrderPreparedForShippingEvidence",
                 kind: EvidenceKind.Transition,
                 description: "Records previous and current order state with correlation."))
+            .AddEvidence(new EvidenceContract(
+                name: "OrderShippedEvidence",
+                kind: EvidenceKind.Transition,
+                description: "Records carrier and tracking readiness for shipment."))
+            .AddEvidence(new EvidenceContract(
+                name: "OrderDeliveredEvidence",
+                kind: EvidenceKind.Transition,
+                description: "Records proof-backed delivery completion."))
             .AddEvidence(new EvidenceContract(
                 name: "OrderPreparationRejectedEvidence",
                 kind: EvidenceKind.InvariantViolation,
@@ -140,7 +228,7 @@ public static class OrderFulfillmentTrustableModel
                 kind: EvidenceKind.SideEffect,
                 description: "Records whether fulfillment notification was sent, skipped, retried, or scheduled for compensation."))
             .AddNonGoal("Do not replace named transitions with direct status mutation.")
+            .AddNonGoal("Do not create orders by directly constructing arbitrary status.")
             .AddNonGoal("Do not allow external callers to submit an arbitrary target order status.")
             .AddNonGoal("Do not publish fulfillment side effects before the business event is durable."));
 }
-

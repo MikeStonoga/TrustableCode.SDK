@@ -11,7 +11,7 @@ public sealed class BusinessInvariantTests
     {
         var context = new TransitionContext<OrderStatus, PrepareOrderForShippingRequirement>(
             TransitionName: "PrepareForShipping",
-            CurrentState: OrderStatus.Paid,
+            CurrentState: OrderStatus.PaidAwaitingFulfillment,
             TargetState: OrderStatus.ReadyForShipping,
             Input: new PrepareOrderForShippingRequirement(
                 PaymentCaptured: true,
