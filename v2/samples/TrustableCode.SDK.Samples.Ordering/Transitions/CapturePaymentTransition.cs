@@ -18,16 +18,8 @@ public sealed class CapturePaymentTransition
             applyState: order.ApplyStatus,
             preconditions:
             [
-                new TransitionPrecondition<OrderStatus, CapturePaymentRequirement>(
-                    code: "PaymentMustBeCaptured",
-                    description: "The payment provider must confirm capture before fulfillment can start.",
-                    isSatisfied: (_, requirement) => requirement.PaymentCaptured,
-                    rejectionReason: "Payment must be captured before the order can await fulfillment."),
-                new TransitionPrecondition<OrderStatus, CapturePaymentRequirement>(
-                    code: "PaymentReferenceRequired",
-                    description: "Captured payment must carry a provider reference.",
-                    isSatisfied: (_, requirement) => !string.IsNullOrWhiteSpace(requirement.PaymentReference),
-                    rejectionReason: "A payment reference is required after capture.")
+                new PaymentMustBeCapturedPrecondition(),
+                new PaymentReferenceRequiredPrecondition()
             ],
             producedEvents:
             [

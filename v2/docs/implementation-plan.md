@@ -21,14 +21,14 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 | 1. Preservar v1 | Concluido | Conteudo atual movido para `v1/`. |
 | 2. Criar estrutura v2 | Concluido | Solution, projeto core, testes e docs iniciais em `v2/`. |
 | 3. Trustable Model Descriptor | Parcial | API inicial implementada e validada em um primeiro sample `Ordering`. Ainda falta validar ergonomia com comportamento executavel. |
-| 4. Transicoes governadas | Parcial | `GovernedTransition` executa pre-condicoes/invariantes, aplica estado, retorna resultado, declara eventos/evidencias e suporta politica basica de repeticao. Transicoes de dominio devem ser classes especializadas que usam `GovernedTransition` internamente. |
-| 5. Invariantes fortes | Parcial | Invariantes com codigo estavel, severidade, descriptor, regra executavel e evidencia estruturada de violacao. Ainda faltam sugestoes de teste e integracao com observabilidade. |
+| 4. Transicoes governadas | Parcial | `GovernedTransition` executa pre-condicoes/invariantes, aplica estado, retorna resultado, declara eventos/evidencias e suporta politica basica de repeticao. Transicoes e pre-condicoes de dominio devem ser classes especializadas que usam primitives genericos internamente. |
+| 5. Invariantes fortes | Parcial | `BusinessInvariantRule` e invariantes com codigo estavel, severidade, descriptor, regra executavel e evidencia estruturada de violacao. `TransitionPrecondition` herda dessa base para unificar o modelo conceitual. Ainda faltam mais exemplos de integracao com observabilidade. |
 | 6. Fronteiras e admissao | Parcial | `BusinessAdmission` aceita/rejeita input externo antes de converter para intencao de negocio e emite evidencia estruturada de rejeicao. Sample `Ordering` cobre fronteiras de criacao, pagamento, preparacao, envio, entrega e cancelamento. Ainda falta helper dedicado para testes de admissao. |
 | 7. Efeitos colaterais e idempotencia | Parcial | `GovernedSideEffect` executa efeitos com chave de idempotencia e evidencia estruturada. `GovernedSideEffectLifecycle` diferencia efeitos planejados, persistidos, publicados, confirmados e compensados. Ainda falta integrar outbox/worker real. |
 | 8. Observabilidade como evidencia | Parcial | Sinks, recorder, adapter `ActivitySource`, adapter `ILogger` e convencoes de campos documentadas. Ainda falta consolidar com cenarios distribuidos. |
 | 9. Pacote de contexto para agentes | Parcial | `AgentContextPacket` gera markdown inicial para agentes e revisores. Ainda falta template completo por area critica e integracao com samples. |
 | 10. Samples alinhados ao livro | Parcial | Sample `Ordering` agora cobre criacao via factory e fluxo principal do pedido ate entrega/cancelamento. Ainda faltam exemplos por apendice: unsafe, trustable manual e trustable usando SDK. |
-| 11. Testes para confianca | Pendente | Helpers para testar invariantes, transicoes, fronteiras, idempotencia e evidencia. |
+| 11. Testes para confianca | Parcial | `TrustableChecks` fornece checks neutros de framework para transicoes, admissoes, invariantes, side effects e evidencia. Ainda faltam builders de cenarios e exemplos de uso em docs. |
 | 12. Packaging e publicacao | Pendente | NuGet metadata, README de pacote e pipeline de release. |
 
 ## Decisoes Iniciais
@@ -41,9 +41,9 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 
 ## Proxima Etapa
 
-Criar helpers de teste para invariantes, transicoes, fronteiras, side effects e evidencia.
+Evoluir `AgentContextPacket` para renderizar um pacote mais completo por area critica, incluindo fluxos felizes, rejeicoes esperadas e pontos de observabilidade.
 
-Depois disso, evoluir `AgentContextPacket` para renderizar um pacote mais completo por area critica, incluindo fluxos felizes, rejeicoes esperadas e pontos de observabilidade.
+Depois disso, documentar os helpers de teste com exemplos curtos baseados no sample `Ordering`.
 
 ## Implementado Nesta Iteracao
 
@@ -159,3 +159,19 @@ Depois disso, evoluir `AgentContextPacket` para renderizar um pacote mais comple
 - Requests externas criadas para pagamento, envio, entrega e cancelamento.
 - Descriptor do `Ordering` atualizado com fronteiras e evidencias de rejeicao para pagamento, envio, entrega e cancelamento.
 - Testes validam admissions aceitas/rejeitadas e confirmam a nova nomenclatura dos estados no contexto de agente.
+
+## Implementado Na Iteracao De Helpers De Teste
+
+- `TrustableCheck` criado como resultado neutro de framework, com lista de falhas e `ThrowIfFailed`.
+- `TrustableChecks` criado com helpers para transicoes aplicadas/rejeitadas, admissoes aceitas/rejeitadas, invariantes preservados/violados, side effects e evidencia nomeada.
+- Testes usam o sample `Ordering` para validar checks positivos e diagnostico de falha.
+
+## Implementado Na Iteracao De Preconditions Especializadas
+
+- `BusinessInvariantRule<TContext>` criado como base comum para regras de negocio executaveis.
+- `BusinessInvariant<TContext>` passou a herdar de `BusinessInvariantRule<TContext>`.
+- `TransitionPrecondition<TState, TContext>` passou a herdar de `BusinessInvariantRule<TransitionContext<TState, TContext>>`.
+- Construtor de `TransitionPrecondition` ficou protegido para desencorajar uso direto em aplicacoes.
+- Sample `Ordering` ganhou preconditions especializadas em `Transitions/Preconditions`.
+- Transicoes do sample passaram a usar classes como `PaymentMustBeCapturedPrecondition`, `CarrierRequiredPrecondition` e `OrderMustBeCancellablePrecondition` em vez de instanciar a precondition generica.
+- Teste valida que uma precondition especializada pode ser avaliada como regra de invariante de negocio.

@@ -18,16 +18,8 @@ public sealed class ShipOrderTransition
             applyState: order.ApplyStatus,
             preconditions:
             [
-                new TransitionPrecondition<OrderStatus, ShipOrderRequirement>(
-                    code: "CarrierRequired",
-                    description: "A shipment must identify the carrier responsible for transport.",
-                    isSatisfied: (_, requirement) => !string.IsNullOrWhiteSpace(requirement.Carrier),
-                    rejectionReason: "A carrier is required before the order can be shipped."),
-                new TransitionPrecondition<OrderStatus, ShipOrderRequirement>(
-                    code: "TrackingCodeRequired",
-                    description: "A shipment must be traceable after it leaves fulfillment.",
-                    isSatisfied: (_, requirement) => !string.IsNullOrWhiteSpace(requirement.TrackingCode),
-                    rejectionReason: "A tracking code is required before the order can be shipped.")
+                new CarrierRequiredPrecondition(),
+                new TrackingCodeRequiredPrecondition()
             ],
             producedEvents:
             [

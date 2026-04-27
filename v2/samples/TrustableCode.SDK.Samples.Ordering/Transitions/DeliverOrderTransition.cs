@@ -18,11 +18,7 @@ public sealed class DeliverOrderTransition
             applyState: order.ApplyStatus,
             preconditions:
             [
-                new TransitionPrecondition<OrderStatus, DeliverOrderRequirement>(
-                    code: "ProofOfDeliveryRequired",
-                    description: "Delivery must be backed by carrier or customer confirmation.",
-                    isSatisfied: (_, requirement) => requirement.ProofOfDeliveryCaptured,
-                    rejectionReason: "Proof of delivery is required before the order can be delivered.")
+                new ProofOfDeliveryRequiredPrecondition()
             ],
             producedEvents:
             [

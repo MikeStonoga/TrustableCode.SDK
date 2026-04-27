@@ -1,4 +1,5 @@
 using TrustableCode.SDK.Samples.Ordering;
+using TrustableCode.SDK.Samples.Ordering.Transitions;
 using TrustableCode.SDK.TrustableModeling.Invariants;
 using TrustableCode.SDK.TrustableModeling.Transitions;
 
@@ -30,5 +31,25 @@ public sealed class BusinessInvariantTests
         Assert.Equal("StockReservedBeforeShipmentPreparationViolation", evidence.Name);
         Assert.Equal("corr-invariant-1", evidence.CorrelationId);
         Assert.Equal("StockReservedBeforeShipmentPreparation", evidence.Metadata["invariant.code"]);
+    }
+
+    [Fact]
+    public void Specialized_transition_precondition_should_evaluate_as_business_invariant_rule()
+    {
+        var precondition = new PaymentMustBeCapturedPrecondition();
+        var context = new TransitionContext<OrderStatus, CapturePaymentRequirement>(
+            TransitionName: "CapturePayment",
+            CurrentState: OrderStatus.PlacedAwaitingPayment,
+            TargetState: OrderStatus.PaidAwaitingFulfillment,
+            Input: new CapturePaymentRequirement(
+                PaymentCaptured: false,
+                PaymentReference: "pay-1",
+                CorrelationId: "corr-invariant-2"));
+
+        var evaluation = precondition.Evaluate(context);
+
+        Assert.False(evaluation.IsPreserved);
+        Assert.Equal("PaymentMustBeCaptured", evaluation.Code);
+        Assert.Equal("Payment must be captured before the order can await fulfillment.", evaluation.Message);
     }
 }

@@ -28,6 +28,8 @@ Each business movement is represented by a specialized transition class:
 
 Each specialized class receives the aggregate through `new SomeTransition(this)` and uses `GovernedTransition` internally.
 
+Transition preconditions are also specialized domain classes under `Transitions/Preconditions/`. They inherit the SDK precondition base, which is also a business invariant rule, so a precondition can be evaluated and evidenced with the same semantic shape as other business truths.
+
 Transition requirements live under `Requirements/` so command meaning stays grouped and easy to scan.
 
 `OrderFactory` shows creation as admitted business intent: external callers can ask to create an order, but cannot inject an arbitrary initial status.
