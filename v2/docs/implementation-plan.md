@@ -224,3 +224,10 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - `SideEffectLifecycleFlow.PlanPersistAndPublish` criado para o fluxo comum de side effect planejado, persistido e publicado.
 - `OrderingApplicationService` passou a usar os helpers novos para manter o fluxo explicito com menos cerimonia.
 - Testes cobrem os helpers de admissao/transicao e lifecycle de side effect.
+
+## Implementado Na Iteracao De Guia De Application Service
+
+- `docs/application-service-pattern.md` criado com o fluxo recomendado para usar a v2 em camada de aplicacao.
+- Guia documenta `ExternalRequest -> BusinessAdmission -> Requirement -> GovernedTransition -> BusinessEvidence -> SideEffectLifecycle`.
+- Exemplos curtos adicionados para `TrustableAdmissionFlow.ExecuteTransition` e `PlanPersistAndPublish`.
+- `v2/README.md` passou a apontar para o guia de application service.
