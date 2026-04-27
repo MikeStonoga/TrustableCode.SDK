@@ -25,7 +25,7 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 | 5. Invariantes fortes | Parcial | Invariantes com codigo estavel, severidade, descriptor, regra executavel e evidencia estruturada de violacao. Ainda faltam sugestoes de teste e integracao com observabilidade. |
 | 6. Fronteiras e admissao | Parcial | `BusinessAdmission` aceita/rejeita input externo antes de converter para intencao de negocio e emite evidencia estruturada de rejeicao. Ainda falta integracao com observabilidade. |
 | 7. Efeitos colaterais e idempotencia | Parcial | `GovernedSideEffect` executa efeitos com chave de idempotencia e evidencia estruturada. Ainda faltam efeitos planejados/persistidos/publicados/confirmados e compensacao. |
-| 8. Observabilidade como evidencia | Parcial | Sinks e recorder para `BusinessEvidence` implementados. Ainda faltam adapters para logging/tracing reais. |
+| 8. Observabilidade como evidencia | Parcial | Sinks, recorder e adapter `ActivitySource` para tracing implementados. Ainda falta adapter de logging e convencoes finais de tags. |
 | 9. Pacote de contexto para agentes | Parcial | `AgentContextPacket` gera markdown inicial para agentes e revisores. Ainda falta template completo por area critica e integracao com samples. |
 | 10. Samples alinhados ao livro | Parcial | Primeiro sample semantico `Ordering` criado. Ainda faltam exemplos por apendice: unsafe, trustable manual e trustable usando SDK. |
 | 11. Testes para confianca | Pendente | Helpers para testar invariantes, transicoes, fronteiras, idempotencia e evidencia. |
@@ -41,7 +41,7 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 
 ## Proxima Etapa
 
-Evoluir observabilidade como evidencia: adapters para logs/traces reais sem misturar ruido tecnico com significado de negocio.
+Evoluir observabilidade como evidencia: adapter de logging e convencoes finais de tags/campos para traces e logs.
 
 Depois disso, aprofundar efeitos colaterais para diferenciar efeitos planejados, persistidos, publicados, confirmados e compensados.
 
@@ -108,3 +108,9 @@ Depois disso, aprofundar efeitos colaterais para diferenciar efeitos planejados,
 - `BusinessEvidenceRecorder` criado para gravar colecoes de evidencia sem expor detalhes do sink ao dominio.
 - Sample `Ordering` ganhou `OrderingEvidencePublisher`.
 - Testes validam captura em memoria, composicao de sinks e publicacao da evidencia do `Order`.
+
+## Implementado Na Iteracao De Tracing
+
+- `ActivitySourceBusinessEvidenceSink` criado para emitir `BusinessEvidence` como activities/spans.
+- Tags estaveis adicionadas para nome, tipo, mensagem, correlacao, timestamp e metadata.
+- Teste com `ActivityListener` valida que evidencia de negocio chega ao tracing com tags semanticas.

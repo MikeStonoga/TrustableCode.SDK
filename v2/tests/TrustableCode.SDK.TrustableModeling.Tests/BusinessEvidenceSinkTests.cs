@@ -1,5 +1,6 @@
 using TrustableCode.SDK.Samples.Ordering;
 using TrustableCode.SDK.TrustableModeling.Evidence;
+using System.Diagnostics;
 
 namespace TrustableCode.SDK.TrustableModeling.Tests;
 
@@ -56,5 +57,39 @@ public sealed class BusinessEvidenceSinkTests
         Assert.Contains(sink.Evidence, evidence => evidence.Name == "PaymentCapturedBeforeShipmentPreparationViolation");
         Assert.Contains(sink.Evidence, evidence => evidence.Name == "StockReservedBeforeShipmentPreparationViolation");
     }
-}
 
+    [Fact]
+    public void Activity_source_sink_should_emit_business_evidence_as_activity_tags()
+    {
+        using var activitySource = new ActivitySource("TrustableCode.Tests");
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == "TrustableCode.Tests",
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData
+        };
+
+        var stoppedActivities = new List<Activity>();
+        listener.ActivityStopped = activity => stoppedActivities.Add(activity);
+        ActivitySource.AddActivityListener(listener);
+
+        var sink = new ActivitySourceBusinessEvidenceSink(activitySource);
+        sink.Record(new BusinessEvidence(
+            name: "OrderPreparationRejectedEvidence",
+            kind: Modeling.EvidenceKind.InvariantViolation,
+            message: "Order preparation was rejected.",
+            correlationId: "corr-trace-1",
+            metadata: new Dictionary<string, string>
+            {
+                ["invariant.code"] = "PaymentCapturedBeforeShipmentPreparation"
+            }));
+
+        Assert.Single(stoppedActivities);
+
+        var tags = stoppedActivities[0].Tags.ToDictionary(tag => tag.Key, tag => tag.Value);
+        Assert.Equal("business.evidence.InvariantViolation", stoppedActivities[0].OperationName);
+        Assert.Equal("OrderPreparationRejectedEvidence", tags["business.evidence.name"]);
+        Assert.Equal("InvariantViolation", tags["business.evidence.kind"]);
+        Assert.Equal("corr-trace-1", tags["business.evidence.correlation_id"]);
+        Assert.Equal("PaymentCapturedBeforeShipmentPreparation", tags["business.metadata.invariant.code"]);
+    }
+}
