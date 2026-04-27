@@ -17,3 +17,5 @@ The boundary sample uses `PrepareOrderForShippingAdmission` to turn external inp
 `OrderingEvidencePublisher` shows how business evidence can be forwarded to a sink without coupling the domain model to logging or tracing infrastructure.
 
 `ActivitySourceBusinessEvidenceSink` can then turn the same evidence into trace activities with business-oriented tags.
+
+`LoggerBusinessEvidenceSink` emits the same evidence through `ILogger` with stable structured fields.

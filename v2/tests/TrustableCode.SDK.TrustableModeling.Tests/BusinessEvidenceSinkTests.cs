@@ -1,6 +1,7 @@
 using TrustableCode.SDK.Samples.Ordering;
 using TrustableCode.SDK.TrustableModeling.Evidence;
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace TrustableCode.SDK.TrustableModeling.Tests;
 
@@ -92,4 +93,65 @@ public sealed class BusinessEvidenceSinkTests
         Assert.Equal("corr-trace-1", tags["business.evidence.correlation_id"]);
         Assert.Equal("PaymentCapturedBeforeShipmentPreparation", tags["business.metadata.invariant.code"]);
     }
+
+    [Fact]
+    public void Logger_sink_should_emit_business_evidence_as_structured_log_state()
+    {
+        var logger = new CapturingLogger();
+        var sink = new LoggerBusinessEvidenceSink(logger);
+
+        sink.Record(new BusinessEvidence(
+            name: "OrderPreparationRejectedEvidence",
+            kind: Modeling.EvidenceKind.InvariantViolation,
+            message: "Order preparation was rejected.",
+            correlationId: "corr-log-1",
+            metadata: new Dictionary<string, string>
+            {
+                ["invariant.code"] = "PaymentCapturedBeforeShipmentPreparation"
+            }));
+
+        var entry = Assert.Single(logger.Entries);
+        Assert.Equal(LogLevel.Warning, entry.Level);
+        Assert.Equal("OrderPreparationRejectedEvidence", entry.EventId.Name);
+        Assert.Equal("Order preparation was rejected.", entry.Message);
+        Assert.Equal("InvariantViolation", entry.State["business.evidence.kind"]);
+        Assert.Equal("corr-log-1", entry.State["business.evidence.correlation_id"]);
+        Assert.Equal("PaymentCapturedBeforeShipmentPreparation", entry.State["business.metadata.invariant.code"]);
+    }
+
+    private sealed class CapturingLogger : ILogger
+    {
+        public List<CapturedLogEntry> Entries { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull
+            => null;
+
+        public bool IsEnabled(LogLevel logLevel)
+            => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            var structuredState = state is IEnumerable<KeyValuePair<string, object?>> values
+                ? values.ToDictionary(pair => pair.Key, pair => pair.Value)
+                : new Dictionary<string, object?>();
+
+            Entries.Add(new CapturedLogEntry(
+                logLevel,
+                eventId,
+                formatter(state, exception),
+                structuredState));
+        }
+    }
+
+    private sealed record CapturedLogEntry(
+        LogLevel Level,
+        EventId EventId,
+        string Message,
+        IReadOnlyDictionary<string, object?> State);
 }
