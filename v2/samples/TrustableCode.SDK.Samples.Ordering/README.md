@@ -13,3 +13,5 @@ The sample also includes a small executable `Order` model. The aggregate delegat
 The boundary sample uses `PrepareOrderForShippingAdmission` to turn external input into admitted business intent only after boundary rules pass.
 
 `NotifyFulfillmentSideEffect` shows the first governed side-effect shape: execute once per idempotency key and emit structured evidence for executed or already-applied attempts.
+
+`OrderingEvidencePublisher` shows how business evidence can be forwarded to a sink without coupling the domain model to logging or tracing infrastructure.
