@@ -15,9 +15,9 @@ public sealed class TrustableModelDescriptorTests
         Assert.Equal("Order.Status", descriptor.StateModel.AuthoritativeState);
         Assert.Equal(6, descriptor.Transitions.Count);
         Assert.Equal(4, descriptor.Invariants.Count);
-        Assert.Equal(3, descriptor.Boundaries.Count);
+        Assert.Equal(6, descriptor.Boundaries.Count);
         Assert.Equal(2, descriptor.SideEffects.Count);
-        Assert.Equal(7, descriptor.Evidence.Count);
+        Assert.Equal(11, descriptor.Evidence.Count);
     }
 
     [Fact]
@@ -39,8 +39,8 @@ public sealed class TrustableModelDescriptorTests
 
         Assert.Contains("# Trustable Context: Order Fulfillment", markdown);
         Assert.Contains("PaymentCapturedBeforeShipmentPreparation", markdown);
-        Assert.Contains("CreateOrder: External intent -> AwaitingPayment", markdown);
-        Assert.Contains("PrepareForShipping: PaidAwaitingFulfillment -> ReadyForShipping", markdown);
+        Assert.Contains("CreateOrder: External intent -> PlacedAwaitingPayment", markdown);
+        Assert.Contains("PrepareForShipping: PaidAwaitingFulfillment -> FulfilledReadyForShipping", markdown);
         Assert.Contains("Do not replace named transitions with direct status mutation.", markdown);
         Assert.Contains("Do not create orders by directly constructing arbitrary status.", markdown);
         Assert.Contains("Do not publish fulfillment side effects before the business event is durable.", markdown);

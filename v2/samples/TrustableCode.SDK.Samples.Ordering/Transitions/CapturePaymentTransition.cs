@@ -12,7 +12,7 @@ public sealed class CapturePaymentTransition
 
         _transition = new GovernedTransition<OrderStatus, CapturePaymentRequirement>(
             name: "CapturePayment",
-            from: OrderStatus.AwaitingPayment,
+            from: OrderStatus.PlacedAwaitingPayment,
             to: OrderStatus.PaidAwaitingFulfillment,
             currentState: () => order.Status,
             applyState: order.ApplyStatus,

@@ -53,7 +53,7 @@ public sealed class GovernedTransitionTests
     [Fact]
     public void Capture_payment_should_move_order_to_paid_awaiting_fulfillment()
     {
-        var order = Order.Rehydrate(OrderStatus.AwaitingPayment);
+        var order = Order.Rehydrate(OrderStatus.PlacedAwaitingPayment);
 
         var result = order.CapturePayment(new CapturePaymentRequirement(
             PaymentCaptured: true,
@@ -79,8 +79,8 @@ public sealed class GovernedTransitionTests
         Assert.Equal(TransitionExecutionStatus.Applied, result.Status);
         Assert.True(result.WasApplied);
         Assert.Equal(OrderStatus.PaidAwaitingFulfillment, result.PreviousState);
-        Assert.Equal(OrderStatus.ReadyForShipping, result.CurrentState);
-        Assert.Equal(OrderStatus.ReadyForShipping, order.Status);
+        Assert.Equal(OrderStatus.FulfilledReadyForShipping, result.CurrentState);
+        Assert.Equal(OrderStatus.FulfilledReadyForShipping, order.Status);
         Assert.Contains("OrderPreparedForShipping", order.Events);
         Assert.Contains("OrderPreparedForShippingEvidence", order.Evidence);
     }
@@ -112,7 +112,7 @@ public sealed class GovernedTransitionTests
     [Fact]
     public void Prepare_for_shipping_should_be_idempotent_when_already_ready_for_shipping()
     {
-        var order = Order.Rehydrate(OrderStatus.ReadyForShipping);
+        var order = Order.Rehydrate(OrderStatus.FulfilledReadyForShipping);
 
         var result = order.PrepareForShipping(new PrepareOrderForShippingRequirement(
             PaymentCaptured: true,
@@ -121,22 +121,22 @@ public sealed class GovernedTransitionTests
 
         Assert.Equal(TransitionExecutionStatus.AlreadyApplied, result.Status);
         Assert.True(result.WasApplied);
-        Assert.Equal(OrderStatus.ReadyForShipping, result.CurrentState);
+        Assert.Equal(OrderStatus.FulfilledReadyForShipping, result.CurrentState);
         Assert.Empty(order.Events);
     }
 
     [Fact]
     public void Cancel_should_reject_after_order_is_shipped()
     {
-        var order = Order.Rehydrate(OrderStatus.Shipped);
+        var order = Order.Rehydrate(OrderStatus.ShippedWaitingDelivery);
 
         var result = order.Cancel(new CancelOrderRequirement(
             Reason: "Customer changed their mind.",
             CorrelationId: "corr-cancel-1"));
 
         Assert.Equal(TransitionExecutionStatus.Rejected, result.Status);
-        Assert.Equal(OrderStatus.Shipped, order.Status);
-        Assert.Contains("Shipped or delivered orders cannot be cancelled by this transition.", result.RejectionReasons);
+        Assert.Equal(OrderStatus.ShippedWaitingDelivery, order.Status);
+        Assert.Contains("Orders waiting for delivery or already delivered cannot be cancelled by this transition.", result.RejectionReasons);
         Assert.Contains("OrderCancellationRejectedEvidence", order.Evidence);
     }
 }

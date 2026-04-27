@@ -23,7 +23,7 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 | 3. Trustable Model Descriptor | Parcial | API inicial implementada e validada em um primeiro sample `Ordering`. Ainda falta validar ergonomia com comportamento executavel. |
 | 4. Transicoes governadas | Parcial | `GovernedTransition` executa pre-condicoes/invariantes, aplica estado, retorna resultado, declara eventos/evidencias e suporta politica basica de repeticao. Transicoes de dominio devem ser classes especializadas que usam `GovernedTransition` internamente. |
 | 5. Invariantes fortes | Parcial | Invariantes com codigo estavel, severidade, descriptor, regra executavel e evidencia estruturada de violacao. Ainda faltam sugestoes de teste e integracao com observabilidade. |
-| 6. Fronteiras e admissao | Parcial | `BusinessAdmission` aceita/rejeita input externo antes de converter para intencao de negocio e emite evidencia estruturada de rejeicao. Ainda falta integracao com observabilidade. |
+| 6. Fronteiras e admissao | Parcial | `BusinessAdmission` aceita/rejeita input externo antes de converter para intencao de negocio e emite evidencia estruturada de rejeicao. Sample `Ordering` cobre fronteiras de criacao, pagamento, preparacao, envio, entrega e cancelamento. Ainda falta helper dedicado para testes de admissao. |
 | 7. Efeitos colaterais e idempotencia | Parcial | `GovernedSideEffect` executa efeitos com chave de idempotencia e evidencia estruturada. `GovernedSideEffectLifecycle` diferencia efeitos planejados, persistidos, publicados, confirmados e compensados. Ainda falta integrar outbox/worker real. |
 | 8. Observabilidade como evidencia | Parcial | Sinks, recorder, adapter `ActivitySource`, adapter `ILogger` e convencoes de campos documentadas. Ainda falta consolidar com cenarios distribuidos. |
 | 9. Pacote de contexto para agentes | Parcial | `AgentContextPacket` gera markdown inicial para agentes e revisores. Ainda falta template completo por area critica e integracao com samples. |
@@ -41,9 +41,9 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 
 ## Proxima Etapa
 
-Completar o sample `Ordering` com fronteiras especializadas para pagamento, envio, entrega e cancelamento.
+Criar helpers de teste para invariantes, transicoes, fronteiras, side effects e evidencia.
 
-Depois disso, criar helpers de teste para invariantes, transicoes, fronteiras, side effects e evidencia.
+Depois disso, evoluir `AgentContextPacket` para renderizar um pacote mais completo por area critica, incluindo fluxos felizes, rejeicoes esperadas e pontos de observabilidade.
 
 ## Implementado Nesta Iteracao
 
@@ -142,7 +142,7 @@ Depois disso, criar helpers de teste para invariantes, transicoes, fronteiras, s
 
 ## Implementado Na Iteracao De Ordering Completo
 
-- `OrderStatus` passou a modelar o fluxo principal: `AwaitingPayment`, `PaidAwaitingFulfillment`, `ReadyForShipping`, `Shipped`, `Delivered` e `Cancelled`.
+- `OrderStatus` passou a modelar o fluxo principal: `PlacedAwaitingPayment`, `PaidAwaitingFulfillment`, `FulfilledReadyForShipping`, `ShippedWaitingDelivery`, `Delivered` e `Cancelled`.
 - `OrderFactory` criado para admitir criacao de pedido e impedir status inicial arbitrario vindo de fronteira externa.
 - Construcao direta de `Order` foi fechada para o sample; `Order.Rehydrate` explicita cenarios de estado ja persistido.
 - `ExternalCreateOrderRequest`, `OrderCreationRequirement` e `OrderLine` criados para representar criacao com significado de negocio.
@@ -150,3 +150,12 @@ Depois disso, criar helpers de teste para invariantes, transicoes, fronteiras, s
 - `PrepareOrderForShippingTransition` atualizado para partir de `PaidAwaitingFulfillment`.
 - `OrderFulfillmentTrustableModel` atualizado para descrever criacao, pagamento, preparacao, envio, entrega e cancelamento.
 - Testes cobrem criacao via factory, rejeicao de status inicial arbitrario, pagamento, fluxo feliz completo ate entrega e rejeicao de cancelamento apos envio.
+
+## Implementado Na Iteracao De Fronteiras Do Ordering
+
+- Estados do pedido passaram a usar o padrao "estado atual + espera operacional": `PlacedAwaitingPayment`, `PaidAwaitingFulfillment`, `FulfilledReadyForShipping`, `ShippedWaitingDelivery`, `Delivered` e `Cancelled`.
+- Requirements do sample foram movidos para `v2/samples/TrustableCode.SDK.Samples.Ordering/Requirements`.
+- Admissions especializadas criadas para `CapturePayment`, `ShipOrder`, `DeliverOrder` e `CancelOrder`.
+- Requests externas criadas para pagamento, envio, entrega e cancelamento.
+- Descriptor do `Ordering` atualizado com fronteiras e evidencias de rejeicao para pagamento, envio, entrega e cancelamento.
+- Testes validam admissions aceitas/rejeitadas e confirmam a nova nomenclatura dos estados no contexto de agente.

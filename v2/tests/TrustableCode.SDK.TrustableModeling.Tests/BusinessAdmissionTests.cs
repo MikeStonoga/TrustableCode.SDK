@@ -16,7 +16,7 @@ public sealed class BusinessAdmissionTests
 
         Assert.True(result.WasAccepted);
         Assert.NotNull(result.Value);
-        Assert.Equal(OrderStatus.AwaitingPayment, result.Value.Status);
+        Assert.Equal(OrderStatus.PlacedAwaitingPayment, result.Value.Status);
         Assert.Equal("order-1", result.Value.OrderId);
         Assert.Contains("OrderCreated", result.Value.Events);
         Assert.Contains("OrderCreatedEvidence", result.Value.Evidence);
@@ -67,7 +67,7 @@ public sealed class BusinessAdmissionTests
         var result = admission.Admit(new ExternalPrepareOrderForShippingRequest(
             PaymentCaptured: true,
             StockReserved: true,
-            RequestedStatus: "Shipped",
+            RequestedStatus: "ShippedWaitingDelivery",
             CorrelationId: "corr-admission-2"));
 
         Assert.False(result.WasAccepted);
@@ -95,5 +95,73 @@ public sealed class BusinessAdmissionTests
         Assert.Contains("A correlation id is required before order preparation can be admitted.", result.RejectionReasons);
         Assert.Single(result.RejectionEvidence);
         Assert.Equal("CorrelationIdRequiredRejected", result.RejectionEvidence[0].Name);
+    }
+
+    [Fact]
+    public void Capture_payment_admission_should_accept_payment_capture_facts()
+    {
+        var admission = CapturePaymentAdmission.Create();
+
+        var result = admission.Admit(new ExternalCapturePaymentRequest(
+            PaymentCaptured: true,
+            PaymentReference: "pay-1",
+            RequestedStatus: null,
+            CorrelationId: "corr-payment-1"));
+
+        Assert.True(result.WasAccepted);
+        Assert.NotNull(result.Value);
+        Assert.True(result.Value.PaymentCaptured);
+        Assert.Equal("pay-1", result.Value.PaymentReference);
+    }
+
+    [Fact]
+    public void Ship_order_admission_should_reject_arbitrary_status_mutation()
+    {
+        var admission = ShipOrderAdmission.Create();
+
+        var result = admission.Admit(new ExternalShipOrderRequest(
+            Carrier: "DHL",
+            TrackingCode: "track-1",
+            RequestedStatus: "ShippedWaitingDelivery",
+            CorrelationId: "corr-ship-1"));
+
+        Assert.False(result.WasAccepted);
+        Assert.Equal("OrderShipmentRejectedEvidence", result.RejectionEvidence[0].Name);
+        Assert.Contains(
+            "External callers may confirm shipment, but may not submit an arbitrary target order status.",
+            result.RejectionReasons);
+    }
+
+    [Fact]
+    public void Deliver_order_admission_should_accept_delivery_evidence()
+    {
+        var deliveredAt = DateTimeOffset.UtcNow;
+        var admission = DeliverOrderAdmission.Create();
+
+        var result = admission.Admit(new ExternalDeliverOrderRequest(
+            ProofOfDeliveryCaptured: true,
+            DeliveredAt: deliveredAt,
+            RequestedStatus: null,
+            CorrelationId: "corr-delivery-1"));
+
+        Assert.True(result.WasAccepted);
+        Assert.NotNull(result.Value);
+        Assert.True(result.Value.ProofOfDeliveryCaptured);
+        Assert.Equal(deliveredAt, result.Value.DeliveredAt);
+    }
+
+    [Fact]
+    public void Cancel_order_admission_should_reject_missing_correlation()
+    {
+        var admission = CancelOrderAdmission.Create();
+
+        var result = admission.Admit(new ExternalCancelOrderRequest(
+            Reason: "Customer requested cancellation.",
+            RequestedStatus: null,
+            CorrelationId: ""));
+
+        Assert.False(result.WasAccepted);
+        Assert.Equal("OrderCancellationRejectedEvidence", result.RejectionEvidence[0].Name);
+        Assert.Contains("A correlation id is required before cancellation can be admitted.", result.RejectionReasons);
     }
 }

@@ -12,7 +12,7 @@ public sealed class DeliverOrderTransition
 
         _transition = new GovernedTransition<OrderStatus, DeliverOrderRequirement>(
             name: "DeliverOrder",
-            from: OrderStatus.Shipped,
+            from: OrderStatus.ShippedWaitingDelivery,
             to: OrderStatus.Delivered,
             currentState: () => order.Status,
             applyState: order.ApplyStatus,

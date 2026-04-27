@@ -13,7 +13,7 @@ public sealed class PrepareOrderForShippingTransition
         _transition = new GovernedTransition<OrderStatus, PrepareOrderForShippingRequirement>(
             name: "PrepareForShipping",
             from: OrderStatus.PaidAwaitingFulfillment,
-            to: OrderStatus.ReadyForShipping,
+            to: OrderStatus.FulfilledReadyForShipping,
             currentState: () => order.Status,
             applyState: order.ApplyStatus,
             invariants: OrderFulfillmentInvariants.PrepareForShipping,

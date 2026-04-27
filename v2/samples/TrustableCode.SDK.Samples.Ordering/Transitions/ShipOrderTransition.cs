@@ -12,8 +12,8 @@ public sealed class ShipOrderTransition
 
         _transition = new GovernedTransition<OrderStatus, ShipOrderRequirement>(
             name: "ShipOrder",
-            from: OrderStatus.ReadyForShipping,
-            to: OrderStatus.Shipped,
+            from: OrderStatus.FulfilledReadyForShipping,
+            to: OrderStatus.ShippedWaitingDelivery,
             currentState: () => order.Status,
             applyState: order.ApplyStatus,
             preconditions:

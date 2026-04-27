@@ -52,7 +52,7 @@ public static class OrderFactory
             accept: request =>
             {
                 var order = new Order(
-                    OrderStatus.AwaitingPayment,
+                    OrderStatus.PlacedAwaitingPayment,
                     request.OrderId,
                     request.CustomerId,
                     request.Lines);

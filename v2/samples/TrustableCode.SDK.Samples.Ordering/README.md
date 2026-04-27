@@ -11,10 +11,10 @@ The descriptor names the authoritative state, valid transitions, invariants, bou
 The sample also includes an executable `Order` model with the full happy path:
 
 - create through `OrderFactory`
-- wait for payment as `AwaitingPayment`
+- wait for payment as `PlacedAwaitingPayment`
 - capture payment into `PaidAwaitingFulfillment`
-- prepare for shipping into `ReadyForShipping`
-- ship into `Shipped`
+- prepare for shipping into `FulfilledReadyForShipping`
+- ship into `ShippedWaitingDelivery`
 - deliver into `Delivered`
 - cancel before shipment through a governed cancellation transition
 
@@ -28,11 +28,19 @@ Each business movement is represented by a specialized transition class:
 
 Each specialized class receives the aggregate through `new SomeTransition(this)` and uses `GovernedTransition` internally.
 
+Transition requirements live under `Requirements/` so command meaning stays grouped and easy to scan.
+
 `OrderFactory` shows creation as admitted business intent: external callers can ask to create an order, but cannot inject an arbitrary initial status.
 
 `Order.Rehydrate` exists for loading an already-known persisted state; new business creation should go through the factory.
 
-The boundary sample uses `PrepareOrderForShippingAdmission` to turn external input into admitted business intent only after boundary rules pass.
+Admission classes turn external input into admitted business intent only after boundary rules pass:
+
+- `CapturePaymentAdmission`
+- `PrepareOrderForShippingAdmission`
+- `ShipOrderAdmission`
+- `DeliverOrderAdmission`
+- `CancelOrderAdmission`
 
 `NotifyFulfillmentSideEffect` shows the first governed side-effect shape: execute once per idempotency key and emit structured evidence for executed or already-applied attempts.
 

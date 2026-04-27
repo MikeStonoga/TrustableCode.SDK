@@ -20,17 +20,17 @@ public static class OrderFulfillmentTrustableModel
                 authoritativeState: "Order.Status",
                 states:
                 [
-                    new StateDefinition("AwaitingPayment", "The order was created and is waiting for payment capture.", isInitial: true),
+                    new StateDefinition("PlacedAwaitingPayment", "The order was created and is waiting for payment capture.", isInitial: true),
                     new StateDefinition("PaidAwaitingFulfillment", "Payment has been captured and fulfillment can be evaluated."),
-                    new StateDefinition("ReadyForShipping", "Payment and stock requirements were satisfied and the order can be handed to shipping."),
-                    new StateDefinition("Shipped", "The order has left fulfillment and is in carrier custody."),
+                    new StateDefinition("FulfilledReadyForShipping", "Payment and stock requirements were satisfied and the order can be handed to shipping."),
+                    new StateDefinition("ShippedWaitingDelivery", "The order has shipped and is waiting for delivery confirmation."),
                     new StateDefinition("Delivered", "The carrier or customer confirmed delivery.", isTerminal: true),
                     new StateDefinition("Cancelled", "The order was intentionally stopped before shipment.", isTerminal: true)
                 ]))
             .AddTransition(new BusinessTransitionDescriptor(
                 name: "CreateOrder",
                 fromState: "External intent",
-                toState: "AwaitingPayment",
+                toState: "PlacedAwaitingPayment",
                 description: "Creates an order through a factory after the creation boundary admits order intent.",
                 preconditions:
                 [
@@ -48,7 +48,7 @@ public static class OrderFulfillmentTrustableModel
                 ]))
             .AddTransition(new BusinessTransitionDescriptor(
                 name: "CapturePayment",
-                fromState: "AwaitingPayment",
+                fromState: "PlacedAwaitingPayment",
                 toState: "PaidAwaitingFulfillment",
                 description: "Moves an order into the paid state after payment capture is confirmed.",
                 preconditions:
@@ -67,7 +67,7 @@ public static class OrderFulfillmentTrustableModel
             .AddTransition(new BusinessTransitionDescriptor(
                 name: "PrepareForShipping",
                 fromState: "PaidAwaitingFulfillment",
-                toState: "ReadyForShipping",
+                toState: "FulfilledReadyForShipping",
                 description: "Moves a paid order into shipment readiness after stock is reserved.",
                 preconditions:
                 [
@@ -85,8 +85,8 @@ public static class OrderFulfillmentTrustableModel
                 ]))
             .AddTransition(new BusinessTransitionDescriptor(
                 name: "ShipOrder",
-                fromState: "ReadyForShipping",
-                toState: "Shipped",
+                fromState: "FulfilledReadyForShipping",
+                toState: "ShippedWaitingDelivery",
                 description: "Moves an order into carrier custody once shipment identity is known.",
                 preconditions:
                 [
@@ -103,7 +103,7 @@ public static class OrderFulfillmentTrustableModel
                 ]))
             .AddTransition(new BusinessTransitionDescriptor(
                 name: "DeliverOrder",
-                fromState: "Shipped",
+                fromState: "ShippedWaitingDelivery",
                 toState: "Delivered",
                 description: "Closes fulfillment after proof of delivery is captured.",
                 preconditions:
@@ -120,12 +120,12 @@ public static class OrderFulfillmentTrustableModel
                 ]))
             .AddTransition(new BusinessTransitionDescriptor(
                 name: "Cancel",
-                fromState: "AwaitingPayment, PaidAwaitingFulfillment, or ReadyForShipping",
+                fromState: "PlacedAwaitingPayment, PaidAwaitingFulfillment, or FulfilledReadyForShipping",
                 toState: "Cancelled",
                 description: "Stops the order before it becomes shipped.",
                 preconditions:
                 [
-                    "Shipped orders cannot be cancelled."
+                    "Orders waiting for delivery cannot be cancelled."
                 ],
                 producedEvents:
                 [
@@ -145,7 +145,7 @@ public static class OrderFulfillmentTrustableModel
                 description: "An order cannot be prepared for shipping unless stock has been reserved."))
             .AddInvariant(new InvariantDescriptor(
                 code: "ShippedOrdersCannotBeCancelled",
-                name: "Shipped orders cannot be cancelled",
+                name: "Orders waiting for delivery cannot be cancelled",
                 description: "Once an order is shipped, cancellation must be represented through a different business process."))
             .AddInvariant(new InvariantDescriptor(
                 code: "DeliveryRequiresShipment",
@@ -165,6 +165,18 @@ public static class OrderFulfillmentTrustableModel
                     "OrderCreationRejectedEvidence"
                 ]))
             .AddBoundary(new BoundaryContract(
+                name: "CapturePaymentAdmission",
+                description: "Admits payment capture facts without letting callers set fulfillment state.",
+                admissionRules:
+                [
+                    "The caller may confirm payment capture, but may not set the target status directly.",
+                    "Captured payment must carry traceable payment facts."
+                ],
+                rejectionEvidence:
+                [
+                    "OrderPaymentCaptureRejectedEvidence"
+                ]))
+            .AddBoundary(new BoundaryContract(
                 name: "PrepareOrderForShippingRequirement",
                 description: "Admits intent to prepare an order for shipping, not arbitrary status mutation.",
                 admissionRules:
@@ -175,6 +187,30 @@ public static class OrderFulfillmentTrustableModel
                 rejectionEvidence:
                 [
                     "OrderPreparationRejectedEvidence"
+                ]))
+            .AddBoundary(new BoundaryContract(
+                name: "ShipOrderAdmission",
+                description: "Admits shipment facts without letting callers mark the order shipped directly.",
+                admissionRules:
+                [
+                    "The caller may confirm shipment, but may not set the target status directly.",
+                    "Carrier and tracking facts must be present for the transition to apply."
+                ],
+                rejectionEvidence:
+                [
+                    "OrderShipmentRejectedEvidence"
+                ]))
+            .AddBoundary(new BoundaryContract(
+                name: "DeliverOrderAdmission",
+                description: "Admits delivery evidence without letting callers mark the order delivered directly.",
+                admissionRules:
+                [
+                    "The caller may confirm delivery, but may not set the target status directly.",
+                    "Proof of delivery must be captured for the transition to apply."
+                ],
+                rejectionEvidence:
+                [
+                    "OrderDeliveryRejectedEvidence"
                 ]))
             .AddBoundary(new BoundaryContract(
                 name: "CancelOrderRequirement",
@@ -208,6 +244,10 @@ public static class OrderFulfillmentTrustableModel
                 kind: EvidenceKind.Transition,
                 description: "Records confirmed payment capture and movement into fulfillment."))
             .AddEvidence(new EvidenceContract(
+                name: "OrderPaymentCaptureRejectedEvidence",
+                kind: EvidenceKind.BoundaryRejection,
+                description: "Records why payment capture input was rejected before business meaning was admitted."))
+            .AddEvidence(new EvidenceContract(
                 name: "OrderPreparedForShippingEvidence",
                 kind: EvidenceKind.Transition,
                 description: "Records previous and current order state with correlation."))
@@ -216,13 +256,25 @@ public static class OrderFulfillmentTrustableModel
                 kind: EvidenceKind.Transition,
                 description: "Records carrier and tracking readiness for shipment."))
             .AddEvidence(new EvidenceContract(
+                name: "OrderShipmentRejectedEvidence",
+                kind: EvidenceKind.BoundaryRejection,
+                description: "Records why shipment input was rejected before business meaning was admitted."))
+            .AddEvidence(new EvidenceContract(
                 name: "OrderDeliveredEvidence",
                 kind: EvidenceKind.Transition,
                 description: "Records proof-backed delivery completion."))
             .AddEvidence(new EvidenceContract(
+                name: "OrderDeliveryRejectedEvidence",
+                kind: EvidenceKind.BoundaryRejection,
+                description: "Records why delivery input was rejected before business meaning was admitted."))
+            .AddEvidence(new EvidenceContract(
                 name: "OrderPreparationRejectedEvidence",
                 kind: EvidenceKind.InvariantViolation,
                 description: "Records why shipment preparation was rejected before state changed."))
+            .AddEvidence(new EvidenceContract(
+                name: "OrderCancellationRejectedEvidence",
+                kind: EvidenceKind.BoundaryRejection,
+                description: "Records why cancellation input was rejected before business meaning was admitted."))
             .AddEvidence(new EvidenceContract(
                 name: "OrderFulfillmentNotificationEvidence",
                 kind: EvidenceKind.SideEffect,
