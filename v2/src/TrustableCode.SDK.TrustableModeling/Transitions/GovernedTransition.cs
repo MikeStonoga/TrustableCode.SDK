@@ -87,15 +87,17 @@ public sealed class GovernedTransition<TState, TContext>
                 }));
         }
 
+        var transitionContext = new TransitionContext<TState, TContext>(Name, previousState, To, context);
         foreach (var precondition in _preconditions)
         {
-            if (!precondition.IsSatisfied(previousState, context))
+            var evaluation = precondition.Evaluate(transitionContext);
+            if (!evaluation.IsPreserved)
             {
-                rejectionReasons.Add(precondition.RejectionReason);
+                rejectionReasons.Add(evaluation.Message);
+                rejectionEvidence.Add(evaluation.ToEvidence());
             }
         }
 
-        var transitionContext = new TransitionContext<TState, TContext>(Name, previousState, To, context);
         foreach (var invariantViolation in new InvariantSet<TransitionContext<TState, TContext>>(_invariants)
             .FindViolations(transitionContext))
         {

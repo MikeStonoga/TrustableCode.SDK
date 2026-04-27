@@ -52,4 +52,28 @@ public sealed class TrustableModelDescriptorTests
         Assert.Contains("Do not create orders by directly constructing arbitrary status.", markdown);
         Assert.Contains("Do not publish fulfillment side effects before the business event is durable.", markdown);
     }
+
+    [Fact]
+    public void Ordering_sample_agent_context_export_should_match_the_descriptor()
+    {
+        var packet = AgentContextPacket.From(OrderFulfillmentTrustableModel.Descriptor);
+        var expectedMarkdown = NormalizeMarkdown(packet.ToMarkdown());
+        var sampleExportPath = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory,
+            "..",
+            "..",
+            "..",
+            "..",
+            "..",
+            "samples",
+            "TrustableCode.SDK.Samples.Ordering",
+            "agent-context.md"));
+
+        var exportedMarkdown = NormalizeMarkdown(File.ReadAllText(sampleExportPath));
+
+        Assert.Equal(expectedMarkdown, exportedMarkdown);
+    }
+
+    private static string NormalizeMarkdown(string markdown)
+        => markdown.ReplaceLineEndings("\n").TrimEnd();
 }

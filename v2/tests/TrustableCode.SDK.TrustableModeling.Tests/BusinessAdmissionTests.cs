@@ -7,12 +7,9 @@ public sealed class BusinessAdmissionTests
     [Fact]
     public void Order_factory_should_create_order_awaiting_payment_after_creation_admission()
     {
-        var result = OrderFactory.Create(new ExternalCreateOrderRequest(
-            OrderId: "order-1",
-            CustomerId: "customer-1",
-            Lines: [new OrderLine("sku-1", 1)],
-            RequestedStatus: null,
-            CorrelationId: "corr-create-1"));
+        var scenario = OrderingScenarioBuilder.Create();
+
+        var result = OrderFactory.Create(scenario.CreateOrderRequest());
 
         Assert.True(result.WasAccepted);
         Assert.NotNull(result.Value);
@@ -25,12 +22,11 @@ public sealed class BusinessAdmissionTests
     [Fact]
     public void Order_factory_should_reject_arbitrary_initial_status()
     {
-        var result = OrderFactory.Create(new ExternalCreateOrderRequest(
-            OrderId: "order-1",
-            CustomerId: "customer-1",
-            Lines: [new OrderLine("sku-1", 1)],
-            RequestedStatus: "PaidAwaitingFulfillment",
-            CorrelationId: "corr-create-2"));
+        var scenario = OrderingScenarioBuilder.Create();
+
+        var result = OrderFactory.Create(scenario.CreateOrderRequest(
+            requestedStatus: "PaidAwaitingFulfillment",
+            correlationId: "corr-create-2"));
 
         Assert.False(result.WasAccepted);
         Assert.Null(result.Value);

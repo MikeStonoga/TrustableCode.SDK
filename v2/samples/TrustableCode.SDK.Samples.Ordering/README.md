@@ -5,12 +5,19 @@ This sample starts with the semantic safety envelope for order fulfillment.
 Before implementing behavior, a developer or AI agent should inspect:
 
 - `OrderFulfillmentTrustableModel.Descriptor`
+- `agent-context.md`
+- `class-reference.md`
 
 The descriptor names the authoritative state, valid transitions, invariants, boundary rules, side effects, evidence, and non-goals that must guide future implementation.
+
+`agent-context.md` is the exported `AgentContextPacket` for this sample. It lets reviewers and agents inspect the semantic context without running code.
+
+`class-reference.md` explains the role of each sample class and the intended SDK usage path.
 
 The sample also includes an executable `Order` model with the full happy path:
 
 - create through `OrderFactory`
+- orchestrate application use through `OrderingApplicationService`
 - wait for payment as `PlacedAwaitingPayment`
 - capture payment into `PaidAwaitingFulfillment`
 - prepare for shipping into `FulfilledReadyForShipping`
@@ -31,6 +38,8 @@ Each specialized class receives the aggregate through `new SomeTransition(this)`
 Transition preconditions are also specialized domain classes under `Transitions/Preconditions/`. They inherit the SDK precondition base, which is also a business invariant rule, so a precondition can be evaluated and evidenced with the same semantic shape as other business truths.
 
 Transition requirements live under `Requirements/` so command meaning stays grouped and easy to scan.
+
+External request DTOs live under `ExternalRequests/`, while admission boundaries live under `Admissions/`. The distinction is intentional: external input is raw, and requirements are admitted business meaning.
 
 `OrderFactory` shows creation as admitted business intent: external callers can ask to create an order, but cannot inject an arbitrary initial status.
 

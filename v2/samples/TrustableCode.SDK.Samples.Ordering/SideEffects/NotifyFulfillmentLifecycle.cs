@@ -1,3 +1,4 @@
+using TrustableCode.SDK.TrustableModeling.Evidence;
 using TrustableCode.SDK.TrustableModeling.SideEffects;
 
 namespace TrustableCode.SDK.Samples.Ordering.SideEffects;
@@ -31,6 +32,11 @@ public sealed class NotifyFulfillmentLifecycle
 
     public SideEffectLifecycleRecord Compensate(FulfillmentNotification notification)
         => _lifecycle.Compensate(IdempotencyKey(notification), notification.CorrelationId);
+
+    public SideEffectLifecycleRecord PlanPersistAndPublish(
+        FulfillmentNotification notification,
+        BusinessEvidenceRecorder recorder)
+        => _lifecycle.PlanPersistAndPublish(notification, recorder, notification.CorrelationId);
 
     private static string IdempotencyKey(FulfillmentNotification notification)
     {

@@ -26,9 +26,9 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 | 6. Fronteiras e admissao | Parcial | `BusinessAdmission` aceita/rejeita input externo antes de converter para intencao de negocio e emite evidencia estruturada de rejeicao. Sample `Ordering` cobre fronteiras de criacao, pagamento, preparacao, envio, entrega e cancelamento. Ainda falta helper dedicado para testes de admissao. |
 | 7. Efeitos colaterais e idempotencia | Parcial | `GovernedSideEffect` executa efeitos com chave de idempotencia e evidencia estruturada. `GovernedSideEffectLifecycle` diferencia efeitos planejados, persistidos, publicados, confirmados e compensados. Ainda falta integrar outbox/worker real. |
 | 8. Observabilidade como evidencia | Parcial | Sinks, recorder, adapter `ActivitySource`, adapter `ILogger` e convencoes de campos documentadas. Ainda falta consolidar com cenarios distribuidos. |
-| 9. Pacote de contexto para agentes | Parcial | `AgentContextPacket` gera markdown com ordem de leitura, fluxo esperado, detalhes de transicoes, fronteiras, rejeicoes, side effects, evidencias e checklist de mudanca. Ainda falta exportar exemplos prontos por sample. |
+| 9. Pacote de contexto para agentes | Concluido | `AgentContextPacket` gera markdown com ordem de leitura, fluxo esperado, detalhes de transicoes, fronteiras, rejeicoes, side effects, evidencias e checklist de mudanca. Sample `Ordering` inclui export pronto. |
 | 10. Samples alinhados ao livro | Parcial | Sample `Ordering` agora cobre criacao via factory e fluxo principal do pedido ate entrega/cancelamento. Ainda faltam exemplos por apendice: unsafe, trustable manual e trustable usando SDK. |
-| 11. Testes para confianca | Parcial | `TrustableChecks` fornece checks neutros de framework para transicoes, admissoes, invariantes, side effects e evidencia. Exemplos documentados em `docs/testing-helpers.md`. Ainda faltam builders de cenarios. |
+| 11. Testes para confianca | Parcial | `TrustableChecks` fornece checks neutros de framework para transicoes, admissoes, invariantes, side effects e evidencia. Exemplos documentados em `docs/testing-helpers.md`. Builder de cenario do sample `Ordering` reduz montagem repetitiva. |
 | 12. Packaging e publicacao | Pendente | NuGet metadata, README de pacote e pipeline de release. |
 
 ## Decisoes Iniciais
@@ -41,9 +41,7 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 
 ## Proxima Etapa
 
-Exportar exemplos prontos de `AgentContextPacket` para os samples, para que agentes e revisores possam abrir o contexto sem executar codigo.
-
-Depois disso, avaliar builders de cenarios de teste para reduzir montagem repetitiva no sample `Ordering`.
+Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de pacote e pipeline de release.
 
 ## Implementado Nesta Iteracao
 
@@ -191,3 +189,38 @@ Depois disso, avaliar builders de cenarios de teste para reduzir montagem repeti
 
 - `docs/testing-helpers.md` criado com exemplos curtos para transicao aplicada, transicao rejeitada, admissao, invariante, side effect e evidencia.
 - `v2/README.md` passou a apontar para a documentacao dos helpers de teste.
+
+## Implementado Na Iteracao De Export De Contexto Para Agentes
+
+- `agent-context.md` exportado no sample `Ordering` com o markdown gerado por `AgentContextPacket`.
+- `README.md` do sample passou a apontar para o contexto exportado.
+- Teste garante que o export do sample permanece sincronizado com `OrderFulfillmentTrustableModel.Descriptor`.
+
+## Implementado Na Iteracao De Builders De Cenario De Teste
+
+- `OrderingScenarioBuilder` criado no projeto de testes para centralizar montagem comum do sample `Ordering`.
+- Testes de transicao, admissao e checks passaram a usar o builder para requests, requirements e ordens reidratadas.
+- O plano vivo passou a apontar packaging/publicacao como proxima frente pendente da v2.
+
+## Implementado Na Iteracao De Organizacao Do Sample Ordering
+
+- Requests externos movidos para `ExternalRequests/`.
+- Admissions movidas para `Admissions/`.
+- Invariantes e publicacao de evidencia movidas para pastas dedicadas.
+- `class-reference.md` criado para explicar cada classe do sample e o fluxo pratico de uso do SDK.
+
+## Implementado Na Iteracao De Service De Aplicacao Do Ordering
+
+- `OrderingApplicationService` criado como ponto de entrada pratico do sample.
+- Service compoe request externa, admissao, requirement, aggregate, transicao governada, publicacao de evidencia e lifecycle de side effect.
+- `OrderingApplicationResult` criado para expor resultado de admissao, status da transicao, eventos, evidencias e lifecycle opcional.
+- `OrderingEvidencePublisher` passou a publicar apenas evidencias ainda nao publicadas por pedido.
+- Testes cobrem criacao aceita, rejeicao de admissao, preparacao com lifecycle de notificacao e cancelamento rejeitado apos envio.
+
+## Implementado Na Iteracao De Ergonomia Do Service De Aplicacao
+
+- `AdmittedTransitionResult` criado para representar admissao seguida de transicao governada.
+- `TrustableAdmissionFlow.ExecuteTransition` criado para reduzir repeticao em services de aplicacao.
+- `SideEffectLifecycleFlow.PlanPersistAndPublish` criado para o fluxo comum de side effect planejado, persistido e publicado.
+- `OrderingApplicationService` passou a usar os helpers novos para manter o fluxo explicito com menos cerimonia.
+- Testes cobrem os helpers de admissao/transicao e lifecycle de side effect.

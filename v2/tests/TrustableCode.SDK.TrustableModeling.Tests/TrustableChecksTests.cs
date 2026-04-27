@@ -12,12 +12,10 @@ public sealed class TrustableChecksTests
     [Fact]
     public void Transition_applied_check_should_validate_state_events_and_evidence()
     {
-        var order = Order.Rehydrate(OrderStatus.PaidAwaitingFulfillment);
+        var scenario = OrderingScenarioBuilder.Create();
+        var order = scenario.RehydratedOrder(OrderStatus.PaidAwaitingFulfillment);
 
-        var result = order.PrepareForShipping(new PrepareOrderForShippingRequirement(
-            PaymentCaptured: true,
-            StockReserved: true,
-            CorrelationId: "corr-check-1"));
+        var result = order.PrepareForShipping(scenario.ShippingPreparation(correlationId: "corr-check-1"));
 
         var check = TrustableChecks.TransitionApplied(
             result,
@@ -31,12 +29,13 @@ public sealed class TrustableChecksTests
     [Fact]
     public void Transition_rejected_check_should_report_missing_expectations()
     {
-        var order = Order.Rehydrate(OrderStatus.PaidAwaitingFulfillment);
+        var scenario = OrderingScenarioBuilder.Create();
+        var order = scenario.RehydratedOrder(OrderStatus.PaidAwaitingFulfillment);
 
-        var result = order.PrepareForShipping(new PrepareOrderForShippingRequirement(
-            PaymentCaptured: false,
-            StockReserved: false,
-            CorrelationId: "corr-check-2"));
+        var result = order.PrepareForShipping(scenario.ShippingPreparation(
+            paymentCaptured: false,
+            stockReserved: false,
+            correlationId: "corr-check-2"));
 
         var check = TrustableChecks.TransitionRejected(
             result,
@@ -70,14 +69,14 @@ public sealed class TrustableChecksTests
     [Fact]
     public void Invariant_side_effect_and_evidence_checks_should_validate_common_sdk_outputs()
     {
+        var scenario = OrderingScenarioBuilder.Create();
         var context = new TransitionContext<OrderStatus, PrepareOrderForShippingRequirement>(
             TransitionName: "PrepareForShipping",
             CurrentState: OrderStatus.PaidAwaitingFulfillment,
             TargetState: OrderStatus.FulfilledReadyForShipping,
-            Input: new PrepareOrderForShippingRequirement(
-                PaymentCaptured: true,
-                StockReserved: false,
-                CorrelationId: "corr-check-5"));
+            Input: scenario.ShippingPreparation(
+                stockReserved: false,
+                correlationId: "corr-check-5"));
         var violation = new InvariantSet<TransitionContext<OrderStatus, PrepareOrderForShippingRequirement>>(
             OrderFulfillmentInvariants.PrepareForShipping)
             .FindViolations(context)
