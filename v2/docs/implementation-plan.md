@@ -29,7 +29,7 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 | 9. Pacote de contexto para agentes | Concluido | `AgentContextPacket` gera markdown com ordem de leitura, fluxo esperado, detalhes de transicoes, fronteiras, rejeicoes, side effects, evidencias e checklist de mudanca. Sample `Ordering` inclui export pronto. |
 | 10. Samples alinhados ao livro | Parcial | Sample `Ordering` agora cobre criacao via factory e fluxo principal do pedido ate entrega/cancelamento. Ainda faltam exemplos por apendice: unsafe, trustable manual e trustable usando SDK. |
 | 11. Testes para confianca | Parcial | `TrustableChecks` fornece checks neutros de framework para transicoes, admissoes, invariantes, side effects e evidencia. Exemplos documentados em `docs/testing-helpers.md`. Builder de cenario do sample `Ordering` reduz montagem repetitiva. |
-| 12. Packaging e publicacao | Pendente | NuGet metadata, README de pacote e pipeline de release. |
+| 12. Packaging e publicacao | Parcial | Metadata NuGet e README de pacote preparados. Ainda falta validar pipeline de release e publicar. |
 
 ## Decisoes Iniciais
 
@@ -231,3 +231,9 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - Guia documenta `ExternalRequest -> BusinessAdmission -> Requirement -> GovernedTransition -> BusinessEvidence -> SideEffectLifecycle`.
 - Exemplos curtos adicionados para `TrustableAdmissionFlow.ExecuteTransition` e `PlanPersistAndPublish`.
 - `v2/README.md` passou a apontar para o guia de application service.
+
+## Implementado Na Iteracao De Preparacao Do Pacote NuGet
+
+- Metadata do pacote `TrustableCode.SDK.TrustableModeling` refinada com titulo, repositorio, tags, descricao e release notes de preview.
+- README especifico do pacote criado em `src/TrustableCode.SDK.TrustableModeling/README.md`.
+- Pacote passou a incluir o README local do projeto em vez do README geral da v2.

@@ -7,10 +7,15 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageId>TrustableCode.SDK.TrustableModeling</PackageId>
+    <Title>TrustableCode.SDK.TrustableModeling</Title>
     <Authors>Mike Stonoga Machado</Authors>
+    <RepositoryUrl>https://github.com/MikeStonoga/TrustableCode.SDK</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/MikeStonoga/TrustableCode.SDK</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>trustable-code;business-modeling;invariants;transitions;ai-agents</PackageTags>
-    <Description>Semantic modeling primitives for explicit state, governed transitions, protected invariants, boundary contracts, side effects, evidence, and AI agent context.</Description>
+    <PackageTags>trustable-code;business-modeling;domain-modeling;invariants;transitions;admission;side-effects;evidence;ai-agents</PackageTags>
+    <Description>Semantic modeling primitives for explicit state, governed transitions, protected invariants, admitted boundaries, controlled side effects, observable evidence, and AI agent context.</Description>
+    <PackageReleaseNotes>Preview v2 package for trustable semantic modeling primitives.</PackageReleaseNotes>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
@@ -19,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
