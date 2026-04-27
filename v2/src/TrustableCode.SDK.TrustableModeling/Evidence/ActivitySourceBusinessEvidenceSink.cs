@@ -24,16 +24,15 @@ public sealed class ActivitySourceBusinessEvidenceSink : IBusinessEvidenceSink
             return;
         }
 
-        activity.SetTag("business.evidence.name", evidence.Name);
-        activity.SetTag("business.evidence.kind", evidence.Kind.ToString());
-        activity.SetTag("business.evidence.message", evidence.Message);
-        activity.SetTag("business.evidence.correlation_id", evidence.CorrelationId);
-        activity.SetTag("business.evidence.observed_at", evidence.ObservedAt.ToString("O"));
+        activity.SetTag(BusinessEvidenceFields.Name, evidence.Name);
+        activity.SetTag(BusinessEvidenceFields.Kind, evidence.Kind.ToString());
+        activity.SetTag(BusinessEvidenceFields.Message, evidence.Message);
+        activity.SetTag(BusinessEvidenceFields.CorrelationId, evidence.CorrelationId);
+        activity.SetTag(BusinessEvidenceFields.ObservedAt, evidence.ObservedAt.ToString("O"));
 
         foreach (var (key, value) in evidence.Metadata)
         {
-            activity.SetTag($"business.metadata.{key}", value);
+            activity.SetTag($"{BusinessEvidenceFields.MetadataPrefix}{key}", value);
         }
     }
 }
-

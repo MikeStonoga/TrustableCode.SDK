@@ -36,17 +36,17 @@ public sealed class LoggerBusinessEvidenceSink : IBusinessEvidenceSink
     {
         var values = new List<KeyValuePair<string, object?>>
         {
-            new("business.evidence.name", evidence.Name),
-            new("business.evidence.kind", evidence.Kind.ToString()),
-            new("business.evidence.message", evidence.Message),
-            new("business.evidence.correlation_id", evidence.CorrelationId),
-            new("business.evidence.observed_at", evidence.ObservedAt),
+            new(BusinessEvidenceFields.Name, evidence.Name),
+            new(BusinessEvidenceFields.Kind, evidence.Kind.ToString()),
+            new(BusinessEvidenceFields.Message, evidence.Message),
+            new(BusinessEvidenceFields.CorrelationId, evidence.CorrelationId),
+            new(BusinessEvidenceFields.ObservedAt, evidence.ObservedAt),
             new("{OriginalFormat}", "Business evidence {BusinessEvidenceName}: {BusinessEvidenceMessage}")
         };
 
         foreach (var (key, value) in evidence.Metadata)
         {
-            values.Add(new KeyValuePair<string, object?>($"business.metadata.{key}", value));
+            values.Add(new KeyValuePair<string, object?>($"{BusinessEvidenceFields.MetadataPrefix}{key}", value));
         }
 
         return new BusinessEvidenceLogState(evidence.Message, values);
@@ -70,4 +70,3 @@ public sealed class LoggerBusinessEvidenceSink : IBusinessEvidenceSink
             => GetEnumerator();
     }
 }
-

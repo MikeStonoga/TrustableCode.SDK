@@ -88,10 +88,10 @@ public sealed class BusinessEvidenceSinkTests
 
         var tags = stoppedActivities[0].Tags.ToDictionary(tag => tag.Key, tag => tag.Value);
         Assert.Equal("business.evidence.InvariantViolation", stoppedActivities[0].OperationName);
-        Assert.Equal("OrderPreparationRejectedEvidence", tags["business.evidence.name"]);
-        Assert.Equal("InvariantViolation", tags["business.evidence.kind"]);
-        Assert.Equal("corr-trace-1", tags["business.evidence.correlation_id"]);
-        Assert.Equal("PaymentCapturedBeforeShipmentPreparation", tags["business.metadata.invariant.code"]);
+        Assert.Equal("OrderPreparationRejectedEvidence", tags[BusinessEvidenceFields.Name]);
+        Assert.Equal("InvariantViolation", tags[BusinessEvidenceFields.Kind]);
+        Assert.Equal("corr-trace-1", tags[BusinessEvidenceFields.CorrelationId]);
+        Assert.Equal("PaymentCapturedBeforeShipmentPreparation", tags[$"{BusinessEvidenceFields.MetadataPrefix}invariant.code"]);
     }
 
     [Fact]
@@ -114,9 +114,9 @@ public sealed class BusinessEvidenceSinkTests
         Assert.Equal(LogLevel.Warning, entry.Level);
         Assert.Equal("OrderPreparationRejectedEvidence", entry.EventId.Name);
         Assert.Equal("Order preparation was rejected.", entry.Message);
-        Assert.Equal("InvariantViolation", entry.State["business.evidence.kind"]);
-        Assert.Equal("corr-log-1", entry.State["business.evidence.correlation_id"]);
-        Assert.Equal("PaymentCapturedBeforeShipmentPreparation", entry.State["business.metadata.invariant.code"]);
+        Assert.Equal("InvariantViolation", entry.State[BusinessEvidenceFields.Kind]);
+        Assert.Equal("corr-log-1", entry.State[BusinessEvidenceFields.CorrelationId]);
+        Assert.Equal("PaymentCapturedBeforeShipmentPreparation", entry.State[$"{BusinessEvidenceFields.MetadataPrefix}invariant.code"]);
     }
 
     private sealed class CapturingLogger : ILogger
