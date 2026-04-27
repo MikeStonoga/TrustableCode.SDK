@@ -21,9 +21,9 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 | 1. Preservar v1 | Concluido | Conteudo atual movido para `v1/`. |
 | 2. Criar estrutura v2 | Concluido | Solution, projeto core, testes e docs iniciais em `v2/`. |
 | 3. Trustable Model Descriptor | Parcial | API inicial implementada e validada em um primeiro sample `Ordering`. Ainda falta validar ergonomia com comportamento executavel. |
-| 4. Transicoes governadas | Parcial | `GovernedTransition` executa pre-condicoes, aplica estado, retorna resultado, declara eventos/evidencias e suporta politica basica de repeticao. Ainda faltam pos-condicoes, integracao com invariantes fortes e efeitos reais. |
-| 5. Invariantes fortes | Pendente | Invariantes com codigo estavel, severidade, regra executavel, testes sugeridos e evidencia de violacao. |
-| 6. Fronteiras e admissao | Pendente | Primitives para aceitar/rejeitar significado externo antes de contaminar o modelo principal. |
+| 4. Transicoes governadas | Parcial | `GovernedTransition` executa pre-condicoes/invariantes, aplica estado, retorna resultado, declara eventos/evidencias e suporta politica basica de repeticao. Transicoes de dominio devem ser classes especializadas que usam `GovernedTransition` internamente. |
+| 5. Invariantes fortes | Parcial | Invariantes com codigo estavel, severidade, descriptor e regra executavel implementados. Ainda faltam sugestoes de teste e evidencia estruturada de violacao. |
+| 6. Fronteiras e admissao | Parcial | `BusinessAdmission` aceita/rejeita input externo antes de converter para intencao de negocio. Ainda falta evidencia estruturada de rejeicao e integracao com observabilidade. |
 | 7. Efeitos colaterais e idempotencia | Pendente | Contratos para efeitos planejados, persistidos, publicados, confirmados e compensados. |
 | 8. Observabilidade como evidencia | Pendente | Sinks e contratos orientados a evidencia de negocio, nao ruido tecnico. |
 | 9. Pacote de contexto para agentes | Parcial | `AgentContextPacket` gera markdown inicial para agentes e revisores. Ainda falta template completo por area critica e integracao com samples. |
@@ -41,9 +41,9 @@ A v2 deve ajudar uma pessoa ou agente a ler uma area critica do sistema por:
 
 ## Proxima Etapa
 
-Evoluir invariantes fortes e fronteiras de admissao, conectando `InvariantDescriptor` a regras executaveis e rejeicoes semanticas antes de criar/mudar estado principal.
+Evoluir evidencia estruturada para violacoes de invariantes e rejeicoes de fronteira.
 
-Depois disso, refinar `GovernedTransition` para usar essas regras em vez de pre-condicoes isoladas.
+Depois disso, iniciar efeitos colaterais governados e idempotencia como primitives proprias, conectadas aos resultados de transicao.
 
 ## Implementado Nesta Iteracao
 
@@ -73,3 +73,16 @@ Depois disso, refinar `GovernedTransition` para usar essas regras em vez de pre-
 - Sample `Ordering` ganhou `Order`, `OrderStatus` e `PrepareOrderForShippingRequirement`.
 - `Order.PrepareForShipping` passou a executar a transicao por `GovernedTransition`.
 - Testes validam transicao aplicada, rejeicao por pre-condicoes e repeticao idempotente.
+
+## Implementado Na Iteracao De Invariantes E Admissao
+
+- `BusinessInvariant<TContext>` criado para conectar `InvariantDescriptor` a regra executavel.
+- `InvariantSet<TContext>` criado para avaliar conjuntos de invariantes e retornar apenas violacoes.
+- `TransitionContext<TState, TInput>` criado para expor estado atual, estado alvo e input durante avaliacao da transicao.
+- `GovernedTransition` passou a aceitar invariantes executaveis alem de pre-condicoes.
+- `BusinessAdmission<TInput, TAccepted>` criado para converter input externo em intencao admitida somente depois das regras de fronteira.
+- `AdmissionRule<TInput>` e `AdmissionResult<TAccepted>` criados.
+- Sample `Ordering` ganhou `PrepareOrderForShippingAdmission`, `ExternalPrepareOrderForShippingRequest` e `OrderFulfillmentInvariants`.
+- `PrepareOrderForShippingTransition` criado como classe especializada de dominio, recebendo `Order` no construtor.
+- `Order.PrepareForShipping` passou a chamar `new PrepareOrderForShippingTransition(this)`.
+- Testes validam admissao aceita, rejeicao por status arbitrario, rejeicao sem correlacao e violacoes de invariantes.

@@ -1,3 +1,5 @@
+using TrustableCode.SDK.TrustableModeling.Invariants;
+
 namespace TrustableCode.SDK.TrustableModeling.Transitions;
 
 /// <summary>
@@ -10,6 +12,7 @@ public sealed class GovernedTransition<TState, TContext>
     private readonly Func<TState> _currentState;
     private readonly Action<TState> _applyState;
     private readonly IReadOnlyList<TransitionPrecondition<TState, TContext>> _preconditions;
+    private readonly IReadOnlyList<IBusinessInvariant<TransitionContext<TState, TContext>>> _invariants;
     private readonly IReadOnlyList<string> _producedEvents;
     private readonly IReadOnlyList<string> _producedEvidence;
 
@@ -20,6 +23,7 @@ public sealed class GovernedTransition<TState, TContext>
         Func<TState> currentState,
         Action<TState> applyState,
         IEnumerable<TransitionPrecondition<TState, TContext>>? preconditions = null,
+        IEnumerable<IBusinessInvariant<TransitionContext<TState, TContext>>>? invariants = null,
         IEnumerable<string>? producedEvents = null,
         IEnumerable<string>? producedEvidence = null,
         TransitionRepetitionPolicy repetitionPolicy = TransitionRepetitionPolicy.Reject)
@@ -30,6 +34,7 @@ public sealed class GovernedTransition<TState, TContext>
         _currentState = currentState ?? throw new ArgumentNullException(nameof(currentState));
         _applyState = applyState ?? throw new ArgumentNullException(nameof(applyState));
         _preconditions = preconditions?.ToArray() ?? [];
+        _invariants = invariants?.ToArray() ?? [];
         _producedEvents = Require.TextList(producedEvents);
         _producedEvidence = Require.TextList(producedEvidence);
         RepetitionPolicy = repetitionPolicy;
@@ -75,6 +80,13 @@ public sealed class GovernedTransition<TState, TContext>
             }
         }
 
+        var transitionContext = new TransitionContext<TState, TContext>(Name, previousState, To, context);
+        foreach (var invariantViolation in new InvariantSet<TransitionContext<TState, TContext>>(_invariants)
+            .FindViolations(transitionContext))
+        {
+            rejectionReasons.Add(invariantViolation.Message);
+        }
+
         if (rejectionReasons.Count > 0)
         {
             return new TransitionExecutionResult<TState>(
@@ -96,4 +108,3 @@ public sealed class GovernedTransition<TState, TContext>
             producedEvidence: _producedEvidence);
     }
 }
-

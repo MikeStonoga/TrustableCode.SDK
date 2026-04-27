@@ -1,3 +1,4 @@
+using TrustableCode.SDK.Samples.Ordering.Transitions;
 using TrustableCode.SDK.TrustableModeling.Transitions;
 
 namespace TrustableCode.SDK.Samples.Ordering;
@@ -20,36 +21,7 @@ public sealed class Order
 
     public TransitionExecutionResult<OrderStatus> PrepareForShipping(PrepareOrderForShippingRequirement requirement)
     {
-        var transition = new GovernedTransition<OrderStatus, PrepareOrderForShippingRequirement>(
-            name: "PrepareForShipping",
-            from: OrderStatus.Paid,
-            to: OrderStatus.ReadyForShipping,
-            currentState: () => Status,
-            applyState: next => Status = next,
-            preconditions:
-            [
-                new TransitionPrecondition<OrderStatus, PrepareOrderForShippingRequirement>(
-                    code: "PaymentCapturedBeforeShipmentPreparation",
-                    description: "Payment must be captured before shipping preparation.",
-                    isSatisfied: (_, context) => context.PaymentCaptured,
-                    rejectionReason: "Payment must be captured before the order can be prepared for shipping."),
-                new TransitionPrecondition<OrderStatus, PrepareOrderForShippingRequirement>(
-                    code: "StockReservedBeforeShipmentPreparation",
-                    description: "Stock must be reserved before shipping preparation.",
-                    isSatisfied: (_, context) => context.StockReserved,
-                    rejectionReason: "Stock must be reserved before the order can be prepared for shipping.")
-            ],
-            producedEvents:
-            [
-                "OrderPreparedForShipping"
-            ],
-            producedEvidence:
-            [
-                "OrderPreparedForShippingEvidence"
-            ],
-            repetitionPolicy: TransitionRepetitionPolicy.TreatAsAlreadyApplied);
-
-        var result = transition.Execute(requirement);
+        var result = new PrepareOrderForShippingTransition(this).Execute(requirement);
         if (result.Status == TransitionExecutionStatus.Applied)
         {
             _events.AddRange(result.ProducedEvents);
@@ -63,5 +35,7 @@ public sealed class Order
 
         return result;
     }
-}
 
+    internal void ApplyStatus(OrderStatus status)
+        => Status = status;
+}
