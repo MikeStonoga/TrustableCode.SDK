@@ -281,3 +281,9 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - `docs/persisted-application-flow.md` criado para documentar snapshot, rehydration, save, outbox e evidencia.
 - Guia separa explicitamente o que deve ficar na aplicacao e o que deve ficar no SDK.
 - `v2/README.md` e `docs/application-service-pattern.md` passaram a apontar para o guia persistido.
+
+## Implementado Na Iteracao De README Do Sample Ordering
+
+- README do sample `Ordering` reescrito como jornada pratica por tarefas.
+- Secoes adicionadas para criacao de pedido, operacao em memoria, fluxo persistido, estado governado, fronteiras, evidencia e outbox.
+- `class-reference.md` permanece como referencia detalhada classe a classe.

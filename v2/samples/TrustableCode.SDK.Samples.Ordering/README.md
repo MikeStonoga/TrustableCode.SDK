@@ -1,66 +1,145 @@
 # Ordering Sample
 
-This sample starts with the semantic safety envelope for order fulfillment.
+This sample shows how to use `TrustableCode.SDK.TrustableModeling` in an order fulfillment flow.
 
-Before implementing behavior, a developer or AI agent should inspect:
+Start here when you want to see the SDK used in application code, not only as isolated primitives.
 
-- `OrderFulfillmentTrustableModel.Descriptor`
-- `agent-context.md`
-- `class-reference.md`
+## Read First
 
-The descriptor names the authoritative state, valid transitions, invariants, boundary rules, side effects, evidence, and non-goals that must guide future implementation.
+- `agent-context.md` is the exported semantic context for reviewers and AI agents.
+- `class-reference.md` explains every class in the sample.
+- `OrderFulfillmentTrustableModel.Descriptor` declares states, transitions, invariants, boundaries, side effects, evidence, and non-goals.
 
-`agent-context.md` is the exported `AgentContextPacket` for this sample. It lets reviewers and agents inspect the semantic context without running code.
+## I Want To Create An Order
 
-`class-reference.md` explains the role of each sample class and the intended SDK usage path.
+Use `OrderFactory.Create(...)`.
 
-The sample also includes an executable `Order` model with the full happy path:
+Creation is a boundary, not a direct constructor call. External callers submit `ExternalCreateOrderRequest`; the factory admits or rejects that input before creating the aggregate.
 
-- create through `OrderFactory`
-- orchestrate application use through `OrderingApplicationService`
-- wait for payment as `PlacedAwaitingPayment`
-- capture payment into `PaidAwaitingFulfillment`
-- prepare for shipping into `FulfilledReadyForShipping`
-- ship into `ShippedWaitingDelivery`
-- deliver into `Delivered`
-- cancel before shipment through a governed cancellation transition
+```csharp
+var result = OrderFactory.Create(new ExternalCreateOrderRequest(
+    OrderId: "order-1",
+    CustomerId: "customer-1",
+    Lines: [new OrderLine("sku-1", 1)],
+    RequestedStatus: null,
+    CorrelationId: "corr-create-1"));
 
-Each business movement is represented by a specialized transition class:
+var order = result.Value;
+```
 
-- `CapturePaymentTransition`
-- `PrepareOrderForShippingTransition`
-- `ShipOrderTransition`
-- `DeliverOrderTransition`
-- `CancelOrderTransition`
+The request intentionally has `RequestedStatus`. The admission boundary rejects it when callers try to inject arbitrary initial state.
 
-Each specialized class receives the aggregate through `new SomeTransition(this)` and uses `GovernedTransition` internally.
+## I Want To Run A Business Operation In Memory
 
-Transition preconditions are also specialized domain classes under `Transitions/Preconditions/`. They inherit the SDK precondition base, which is also a business invariant rule, so a precondition can be evaluated and evidenced with the same semantic shape as other business truths.
+Use `OrderingApplicationService`.
 
-Transition requirements live under `Requirements/` so command meaning stays grouped and easy to scan.
+It composes the application-level flow:
 
-External request DTOs live under `ExternalRequests/`, while admission boundaries live under `Admissions/`. The distinction is intentional: external input is raw, and requirements are admitted business meaning.
+```text
+ExternalRequest -> Admission -> Requirement -> Order -> GovernedTransition -> Evidence -> SideEffectLifecycle
+```
 
-`OrderFactory` shows creation as admitted business intent: external callers can ask to create an order, but cannot inject an arbitrary initial status.
+Example:
 
-`Order.Rehydrate(OrderPersistenceSnapshot)` exists for loading an already-known persisted state; new business creation should go through the factory.
+```csharp
+var service = new OrderingApplicationService(evidenceSink, sideEffectLifecycleStore);
 
-Admission classes turn external input into admitted business intent only after boundary rules pass:
+var result = service.PrepareForShipping(order, new ExternalPrepareOrderForShippingRequest(
+    PaymentCaptured: true,
+    StockReserved: true,
+    RequestedStatus: "",
+    CorrelationId: "corr-prepare-1"));
+```
 
-- `CapturePaymentAdmission`
-- `PrepareOrderForShippingAdmission`
-- `ShipOrderAdmission`
-- `DeliverOrderAdmission`
-- `CancelOrderAdmission`
+This is the clearest entry point for understanding how admissions, transitions, evidence, and side-effect lifecycle work together.
 
-`NotifyFulfillmentSideEffect` shows the first governed side-effect shape: execute once per idempotency key and emit structured evidence for executed or already-applied attempts.
+## I Want To Load From Persistence And Save Changes
 
-`NotifyFulfillmentLifecycle` shows the durable lifecycle around the same business effect: planned, persisted, published, confirmed, compensation required, and compensated.
+Use `PersistedOrderingApplicationService`.
 
-`OrderingEvidencePublisher` shows how business evidence can be forwarded to a sink without coupling the domain model to logging or tracing infrastructure.
+It demonstrates the real application shape around persistence:
 
-`PersistedOrderingApplicationService` shows the same application flow around persisted snapshots and an in-memory outbox: load, rehydrate, execute, save, enqueue produced events, and publish evidence.
+```text
+Snapshot -> Rehydrate -> Application Service -> Save Snapshot -> Outbox -> Evidence
+```
 
-`ActivitySourceBusinessEvidenceSink` can then turn the same evidence into trace activities with business-oriented tags.
+Example:
 
-`LoggerBusinessEvidenceSink` emits the same evidence through `ILogger` with stable structured fields.
+```csharp
+orders.Save(new OrderPersistenceSnapshot(
+    OrderId: "order-1",
+    CustomerId: "customer-1",
+    Lines: [new OrderLine("sku-1", 1)],
+    Status: OrderStatus.PaidAwaitingFulfillment));
+
+var service = new PersistedOrderingApplicationService(
+    orders,
+    outbox,
+    evidenceSink,
+    sideEffectLifecycleStore);
+
+var result = service.PrepareForShipping(
+    "order-1",
+    new ExternalPrepareOrderForShippingRequest(
+        PaymentCaptured: true,
+        StockReserved: true,
+        RequestedStatus: "",
+        CorrelationId: "corr-prepare-1"));
+```
+
+Rejected operations may publish rejection evidence, but they do not save a new snapshot or enqueue success events.
+
+## I Want To Understand State Changes
+
+`Order.Status` is read-only to callers.
+
+Internally, `Order` owns a `GovernedState<OrderStatus>` named `StatusState`. Transition classes use:
+
+```csharp
+.State(order.StatusState)
+```
+
+The SDK calls `ApplyApproved` only after the transition passes state checks, preconditions, and invariants.
+
+## I Want To Understand Boundaries
+
+External DTOs live under `ExternalRequests/`.
+
+Admission rules live under `Admissions/`.
+
+Accepted business intent is represented by records under `Requirements/`.
+
+This separation is intentional:
+
+- external requests are raw input
+- admissions decide whether input has business meaning
+- requirements are admitted intent passed into transitions
+
+## I Want To Understand Evidence And Outbox
+
+`OrderingEvidencePublisher` forwards `Order.BusinessEvidence` to an `IBusinessEvidenceSink`.
+
+`PersistedOrderingApplicationService` copies successful transition events into `IOrderingOutbox`.
+
+`NotifyFulfillmentLifecycle` demonstrates planned, persisted, and published lifecycle evidence for external side effects.
+
+## Folder Map
+
+- `ExternalRequests/`: raw input shapes.
+- `Admissions/`: boundary rules that accept or reject input.
+- `Requirements/`: admitted business intent.
+- `Transitions/`: domain-specific wrappers around `GovernedTransition`.
+- `Transitions/Preconditions/`: reusable transition rules.
+- `Invariants/`: executable business invariants.
+- `Application/`: application service examples.
+- `Persistence/`: snapshot and in-memory repository example.
+- `Outbox/`: in-memory outbox example.
+- `SideEffects/`: governed side-effect examples.
+- `Evidence/`: evidence publishing adapter.
+
+## Related Docs
+
+- `../../docs/application-service-pattern.md`
+- `../../docs/persisted-application-flow.md`
+- `../../docs/evidence-conventions.md`
+- `../../docs/testing-helpers.md`
