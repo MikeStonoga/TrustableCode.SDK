@@ -19,7 +19,7 @@ public sealed class Order
         OrderId = orderId;
         CustomerId = customerId;
         Lines = lines?.ToArray() ?? [new OrderLine("sku-1", 1)];
-        Status = status;
+        StatusState = GovernedState<OrderStatus>.Create(status);
     }
 
     public static Order Rehydrate(
@@ -35,7 +35,9 @@ public sealed class Order
 
     public IReadOnlyList<OrderLine> Lines { get; }
 
-    public OrderStatus Status { get; private set; }
+    public OrderStatus Status => StatusState.Current;
+
+    internal GovernedState<OrderStatus> StatusState { get; }
 
     public IReadOnlyList<string> Events => _events;
 
@@ -74,10 +76,6 @@ public sealed class Order
 
     public TransitionExecutionResult<OrderStatus> Cancel(CancelOrderRequirement requirement)
         => Record(new CancelOrderTransition(this).Execute(requirement), "OrderCancellationRejectedEvidence");
-
-    // Governed transitions call this only after state, preconditions, and invariants pass.
-    internal void ApplyStatus(OrderStatus status)
-        => Status = status;
 
     private TransitionExecutionResult<OrderStatus> Record(
         TransitionExecutionResult<OrderStatus> result,

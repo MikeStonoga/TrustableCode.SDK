@@ -253,3 +253,11 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - Builder suporta `From`, `To`, `ReadState`, `ApplyState`, `Require`, `Preserve`, `ProducesEvent`, `ProducesEvidence`, `TreatRepetitionAsAlreadyApplied` e `Build`.
 - Transicoes do sample `Ordering` passaram a usar o builder fluente.
 - Docs explicam `ApplyState(order.ApplyStatus)` como callback controlado chamado apenas depois da aprovacao da transicao.
+
+## Implementado Na Iteracao De Estado Governado
+
+- `GovernedState<TState>` criado para representar estado que deve mudar apenas por transicoes aprovadas.
+- `GovernedTransitionBuilder.State(...)` adicionado como atalho para leitura e aplicacao de estado governado.
+- Sample `Ordering` passou a expor `Order.Status` como leitura de `StatusState.Current`.
+- Transicoes do sample passaram a usar `.State(order.StatusState)` em vez de callbacks manuais `ReadState` e `ApplyState`.
+- Docs atualizadas para explicar `GovernedState` e `ApplyApproved`.

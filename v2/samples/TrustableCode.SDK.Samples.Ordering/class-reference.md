@@ -28,7 +28,7 @@ Small result returned by `OrderingApplicationService`. It exposes whether admiss
 
 The executable aggregate in the sample. It owns `Status`, records produced event names, records evidence names, and exposes methods such as `CapturePayment`, `PrepareForShipping`, `Ship`, `Deliver`, and `Cancel`. Each method delegates to a specialized transition instead of changing status inline.
 
-`ApplyStatus` is internal on purpose. The transition builder receives it through `ApplyState(order.ApplyStatus)`, and the SDK calls it only after the transition is accepted. This keeps callers from assigning `Order.Status` directly.
+`StatusState` is internal on purpose. The transition builder receives it through `.State(order.StatusState)`, and the SDK calls `ApplyApproved` only after the transition is accepted. Public callers can read `Order.Status`, but they cannot assign it directly.
 
 `OrderFactory`
 

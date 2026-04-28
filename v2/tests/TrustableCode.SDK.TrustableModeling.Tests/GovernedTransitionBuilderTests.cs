@@ -9,14 +9,13 @@ public sealed class GovernedTransitionBuilderTests
     [Fact]
     public void Build_should_create_transition_from_declared_steps()
     {
-        var currentState = OrderStatus.FulfilledReadyForShipping;
+        var state = GovernedState<OrderStatus>.Create(OrderStatus.FulfilledReadyForShipping);
 
         var transition = GovernedTransition<OrderStatus, ShipOrderRequirement>
             .Create("ShipOrder")
             .From(OrderStatus.FulfilledReadyForShipping)
             .To(OrderStatus.ShippedWaitingDelivery)
-            .ReadState(() => currentState)
-            .ApplyState(state => currentState = state)
+            .State(state)
             .Require(new CarrierRequiredPrecondition())
             .ProducesEvent("OrderShipped")
             .ProducesEvidence("OrderShippedEvidence")
@@ -29,7 +28,7 @@ public sealed class GovernedTransitionBuilderTests
             CorrelationId: "corr-builder-1"));
 
         Assert.Equal(TransitionExecutionStatus.Applied, result.Status);
-        Assert.Equal(OrderStatus.ShippedWaitingDelivery, currentState);
+        Assert.Equal(OrderStatus.ShippedWaitingDelivery, state.Current);
         Assert.Contains("OrderShipped", result.ProducedEvents);
         Assert.Contains("OrderShippedEvidence", result.ProducedEvidence);
     }

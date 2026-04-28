@@ -79,8 +79,7 @@ var transition = GovernedTransition<OrderStatus, ShipOrderRequirement>
     .Create("ShipOrder")
     .From(OrderStatus.FulfilledReadyForShipping)
     .To(OrderStatus.ShippedWaitingDelivery)
-    .ReadState(() => order.Status)
-    .ApplyState(order.ApplyStatus)
+    .State(order.StatusState)
     .Require(new CarrierRequiredPrecondition())
     .Require(new TrackingCodeRequiredPrecondition())
     .ProducesEvent("OrderShipped")
@@ -89,7 +88,7 @@ var transition = GovernedTransition<OrderStatus, ShipOrderRequirement>
     .Build();
 ```
 
-`ReadState` is how the SDK observes the aggregate state. `ApplyState` is the callback it invokes only after the transition is approved.
+`State(...)` is the preferred path when the aggregate uses `GovernedState<TState>`. It lets the SDK observe the current state and call `ApplyApproved` only after the transition is approved.
 
 ## Side-Effect Lifecycle
 

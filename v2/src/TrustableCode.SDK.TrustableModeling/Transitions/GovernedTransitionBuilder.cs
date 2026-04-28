@@ -49,6 +49,14 @@ public sealed class GovernedTransitionBuilder<TState, TContext>
         return this;
     }
 
+    public GovernedTransitionBuilder<TState, TContext> State(GovernedState<TState> state)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+
+        return ReadState(state.Read)
+            .ApplyState(state.ApplyApproved);
+    }
+
     public GovernedTransitionBuilder<TState, TContext> Require(TransitionPrecondition<TState, TContext> precondition)
     {
         ArgumentNullException.ThrowIfNull(precondition);

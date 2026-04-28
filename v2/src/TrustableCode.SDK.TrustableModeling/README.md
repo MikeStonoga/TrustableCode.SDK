@@ -90,6 +90,14 @@ var admission = BusinessAdmission<ExternalShipOrderRequest, ShipOrderRequirement
 
 Executes a state transition through named preconditions, invariants, declared events, and declared evidence.
 
+`GovernedState<TState>` can hold state that should only be changed by approved transitions:
+
+```csharp
+internal GovernedState<OrderStatus> StatusState { get; }
+
+public OrderStatus Status => StatusState.Current;
+```
+
 Use `GovernedTransition<TState, TContext>.Create(...)` to declare transitions fluently:
 
 ```csharp
@@ -97,8 +105,7 @@ var transition = GovernedTransition<OrderStatus, ShipOrderRequirement>
     .Create("ShipOrder")
     .From(OrderStatus.FulfilledReadyForShipping)
     .To(OrderStatus.ShippedWaitingDelivery)
-    .ReadState(() => order.Status)
-    .ApplyState(order.ApplyStatus)
+    .State(order.StatusState)
     .Require(new CarrierRequiredPrecondition())
     .ProducesEvent("OrderShipped")
     .ProducesEvidence("OrderShippedEvidence")
@@ -106,7 +113,7 @@ var transition = GovernedTransition<OrderStatus, ShipOrderRequirement>
     .Build();
 ```
 
-`ReadState` tells the SDK how to inspect the current state. `ApplyState` is the controlled callback the SDK calls only after the transition is approved.
+`State(...)` tells the SDK how to inspect and apply state. The transition calls `ApplyApproved` only after state, preconditions, and invariants pass.
 
 `BusinessInvariant<TContext>`
 
