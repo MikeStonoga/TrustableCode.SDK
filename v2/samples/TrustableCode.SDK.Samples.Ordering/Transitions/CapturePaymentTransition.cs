@@ -10,26 +10,18 @@ public sealed class CapturePaymentTransition
     {
         ArgumentNullException.ThrowIfNull(order);
 
-        _transition = new GovernedTransition<OrderStatus, CapturePaymentRequirement>(
-            name: "CapturePayment",
-            from: OrderStatus.PlacedAwaitingPayment,
-            to: OrderStatus.PaidAwaitingFulfillment,
-            currentState: () => order.Status,
-            applyState: order.ApplyStatus,
-            preconditions:
-            [
-                new PaymentMustBeCapturedPrecondition(),
-                new PaymentReferenceRequiredPrecondition()
-            ],
-            producedEvents:
-            [
-                "OrderPaymentCaptured"
-            ],
-            producedEvidence:
-            [
-                "OrderPaymentCapturedEvidence"
-            ],
-            repetitionPolicy: TransitionRepetitionPolicy.TreatAsAlreadyApplied);
+        _transition = GovernedTransition<OrderStatus, CapturePaymentRequirement>
+            .Create("CapturePayment")
+            .From(OrderStatus.PlacedAwaitingPayment)
+            .To(OrderStatus.PaidAwaitingFulfillment)
+            .ReadState(() => order.Status)
+            .ApplyState(order.ApplyStatus)
+            .Require(new PaymentMustBeCapturedPrecondition())
+            .Require(new PaymentReferenceRequiredPrecondition())
+            .ProducesEvent("OrderPaymentCaptured")
+            .ProducesEvidence("OrderPaymentCapturedEvidence")
+            .TreatRepetitionAsAlreadyApplied()
+            .Build();
     }
 
     public TransitionExecutionResult<OrderStatus> Execute(CapturePaymentRequirement requirement)

@@ -75,6 +75,7 @@ public sealed class Order
     public TransitionExecutionResult<OrderStatus> Cancel(CancelOrderRequirement requirement)
         => Record(new CancelOrderTransition(this).Execute(requirement), "OrderCancellationRejectedEvidence");
 
+    // Governed transitions call this only after state, preconditions, and invariants pass.
     internal void ApplyStatus(OrderStatus status)
         => Status = status;
 

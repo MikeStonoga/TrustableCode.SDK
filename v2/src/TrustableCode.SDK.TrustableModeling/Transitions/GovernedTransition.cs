@@ -50,6 +50,9 @@ public sealed class GovernedTransition<TState, TContext>
 
     public TransitionRepetitionPolicy RepetitionPolicy { get; }
 
+    public static GovernedTransitionBuilder<TState, TContext> Create(string name)
+        => new(name);
+
     public TransitionExecutionResult<TState> Execute(TContext context)
     {
         ArgumentNullException.ThrowIfNull(context);

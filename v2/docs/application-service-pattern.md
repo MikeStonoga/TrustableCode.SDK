@@ -70,6 +70,27 @@ This keeps the policy visible:
 - evidence is published by the application layer
 - rejected input does not call the transition
 
+## Governed Transition Declaration
+
+Declare transitions with the fluent builder when creating domain-specific transition classes:
+
+```csharp
+var transition = GovernedTransition<OrderStatus, ShipOrderRequirement>
+    .Create("ShipOrder")
+    .From(OrderStatus.FulfilledReadyForShipping)
+    .To(OrderStatus.ShippedWaitingDelivery)
+    .ReadState(() => order.Status)
+    .ApplyState(order.ApplyStatus)
+    .Require(new CarrierRequiredPrecondition())
+    .Require(new TrackingCodeRequiredPrecondition())
+    .ProducesEvent("OrderShipped")
+    .ProducesEvidence("OrderShippedEvidence")
+    .TreatRepetitionAsAlreadyApplied()
+    .Build();
+```
+
+`ReadState` is how the SDK observes the aggregate state. `ApplyState` is the callback it invokes only after the transition is approved.
+
 ## Side-Effect Lifecycle
 
 Use `PlanPersistAndPublish` for the common application flow where an external side effect must be planned, persisted, and published in order.

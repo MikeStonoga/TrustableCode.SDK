@@ -10,22 +10,17 @@ public sealed class PrepareOrderForShippingTransition
     {
         ArgumentNullException.ThrowIfNull(order);
 
-        _transition = new GovernedTransition<OrderStatus, PrepareOrderForShippingRequirement>(
-            name: "PrepareForShipping",
-            from: OrderStatus.PaidAwaitingFulfillment,
-            to: OrderStatus.FulfilledReadyForShipping,
-            currentState: () => order.Status,
-            applyState: order.ApplyStatus,
-            invariants: OrderFulfillmentInvariants.PrepareForShipping,
-            producedEvents:
-            [
-                "OrderPreparedForShipping"
-            ],
-            producedEvidence:
-            [
-                "OrderPreparedForShippingEvidence"
-            ],
-            repetitionPolicy: TransitionRepetitionPolicy.TreatAsAlreadyApplied);
+        _transition = GovernedTransition<OrderStatus, PrepareOrderForShippingRequirement>
+            .Create("PrepareForShipping")
+            .From(OrderStatus.PaidAwaitingFulfillment)
+            .To(OrderStatus.FulfilledReadyForShipping)
+            .ReadState(() => order.Status)
+            .ApplyState(order.ApplyStatus)
+            .Preserve(OrderFulfillmentInvariants.PrepareForShipping)
+            .ProducesEvent("OrderPreparedForShipping")
+            .ProducesEvidence("OrderPreparedForShippingEvidence")
+            .TreatRepetitionAsAlreadyApplied()
+            .Build();
     }
 
     public TransitionExecutionResult<OrderStatus> Execute(PrepareOrderForShippingRequirement requirement)

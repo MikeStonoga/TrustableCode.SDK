@@ -245,3 +245,11 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - Builder suporta `Require`, `RejectWhen`, `AcceptWith` e `Build`.
 - Admissions do sample `Ordering` e `OrderFactory` passaram a usar o builder.
 - Docs e README de pacote passaram a mostrar o estilo fluente de admissao.
+
+## Implementado Na Iteracao De Builder De Transicao
+
+- `GovernedTransitionBuilder<TState, TContext>` criado para declarar transicoes governadas com menos boilerplate.
+- `GovernedTransition<TState, TContext>.Create(name)` adicionado como entrada fluente.
+- Builder suporta `From`, `To`, `ReadState`, `ApplyState`, `Require`, `Preserve`, `ProducesEvent`, `ProducesEvidence`, `TreatRepetitionAsAlreadyApplied` e `Build`.
+- Transicoes do sample `Ordering` passaram a usar o builder fluente.
+- Docs explicam `ApplyState(order.ApplyStatus)` como callback controlado chamado apenas depois da aprovacao da transicao.

@@ -28,6 +28,8 @@ Small result returned by `OrderingApplicationService`. It exposes whether admiss
 
 The executable aggregate in the sample. It owns `Status`, records produced event names, records evidence names, and exposes methods such as `CapturePayment`, `PrepareForShipping`, `Ship`, `Deliver`, and `Cancel`. Each method delegates to a specialized transition instead of changing status inline.
 
+`ApplyStatus` is internal on purpose. The transition builder receives it through `ApplyState(order.ApplyStatus)`, and the SDK calls it only after the transition is accepted. This keeps callers from assigning `Order.Status` directly.
+
 `OrderFactory`
 
 The creation boundary for new orders. It accepts `ExternalCreateOrderRequest`, applies admission rules, creates an `Order` in `PlacedAwaitingPayment`, and records creation evidence. New orders should go through this factory.
@@ -130,7 +132,7 @@ Domain wrapper around `GovernedTransition<OrderStatus, PrepareOrderForShippingRe
 
 `ShipOrderTransition`
 
-Domain wrapper around `GovernedTransition<OrderStatus, ShipOrderRequirement>`. It moves `FulfilledReadyForShipping` to `ShippedWaitingDelivery` after carrier and tracking facts are present.
+Domain wrapper around `GovernedTransition<OrderStatus, ShipOrderRequirement>` using the fluent transition builder. It moves `FulfilledReadyForShipping` to `ShippedWaitingDelivery` after carrier and tracking facts are present.
 
 `DeliverOrderTransition`
 

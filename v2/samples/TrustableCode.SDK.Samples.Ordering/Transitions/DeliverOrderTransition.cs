@@ -10,25 +10,17 @@ public sealed class DeliverOrderTransition
     {
         ArgumentNullException.ThrowIfNull(order);
 
-        _transition = new GovernedTransition<OrderStatus, DeliverOrderRequirement>(
-            name: "DeliverOrder",
-            from: OrderStatus.ShippedWaitingDelivery,
-            to: OrderStatus.Delivered,
-            currentState: () => order.Status,
-            applyState: order.ApplyStatus,
-            preconditions:
-            [
-                new ProofOfDeliveryRequiredPrecondition()
-            ],
-            producedEvents:
-            [
-                "OrderDelivered"
-            ],
-            producedEvidence:
-            [
-                "OrderDeliveredEvidence"
-            ],
-            repetitionPolicy: TransitionRepetitionPolicy.TreatAsAlreadyApplied);
+        _transition = GovernedTransition<OrderStatus, DeliverOrderRequirement>
+            .Create("DeliverOrder")
+            .From(OrderStatus.ShippedWaitingDelivery)
+            .To(OrderStatus.Delivered)
+            .ReadState(() => order.Status)
+            .ApplyState(order.ApplyStatus)
+            .Require(new ProofOfDeliveryRequiredPrecondition())
+            .ProducesEvent("OrderDelivered")
+            .ProducesEvidence("OrderDeliveredEvidence")
+            .TreatRepetitionAsAlreadyApplied()
+            .Build();
     }
 
     public TransitionExecutionResult<OrderStatus> Execute(DeliverOrderRequirement requirement)

@@ -10,26 +10,18 @@ public sealed class CancelOrderTransition
     {
         ArgumentNullException.ThrowIfNull(order);
 
-        _transition = new GovernedTransition<OrderStatus, CancelOrderRequirement>(
-            name: "CancelOrder",
-            from: order.Status,
-            to: OrderStatus.Cancelled,
-            currentState: () => order.Status,
-            applyState: order.ApplyStatus,
-            preconditions:
-            [
-                new CancellationReasonRequiredPrecondition(),
-                new OrderMustBeCancellablePrecondition()
-            ],
-            producedEvents:
-            [
-                "OrderCancelled"
-            ],
-            producedEvidence:
-            [
-                "OrderCancelledEvidence"
-            ],
-            repetitionPolicy: TransitionRepetitionPolicy.TreatAsAlreadyApplied);
+        _transition = GovernedTransition<OrderStatus, CancelOrderRequirement>
+            .Create("CancelOrder")
+            .From(order.Status)
+            .To(OrderStatus.Cancelled)
+            .ReadState(() => order.Status)
+            .ApplyState(order.ApplyStatus)
+            .Require(new CancellationReasonRequiredPrecondition())
+            .Require(new OrderMustBeCancellablePrecondition())
+            .ProducesEvent("OrderCancelled")
+            .ProducesEvidence("OrderCancelledEvidence")
+            .TreatRepetitionAsAlreadyApplied()
+            .Build();
     }
 
     public TransitionExecutionResult<OrderStatus> Execute(CancelOrderRequirement requirement)
