@@ -34,6 +34,10 @@ The executable aggregate in the sample. It owns `Status`, records produced event
 
 The creation boundary for new orders. It accepts `ExternalCreateOrderRequest`, applies admission rules, creates an `Order` in `PlacedAwaitingPayment`, and records creation evidence. New orders should go through this factory.
 
+`OrderPersistenceSnapshot`
+
+Persistence-facing shape used to rehydrate an order that already exists in storage. It restores identity, lines, and trusted persisted status without recording creation evidence. It is not a creation command.
+
 `OrderStatus`
 
 The authoritative state model for the aggregate: `PlacedAwaitingPayment`, `PaidAwaitingFulfillment`, `FulfilledReadyForShipping`, `ShippedWaitingDelivery`, `Delivered`, and `Cancelled`.

@@ -23,11 +23,27 @@ public sealed class Order
     }
 
     public static Order Rehydrate(
+        OrderPersistenceSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+
+        return new Order(
+            snapshot.Status,
+            snapshot.OrderId,
+            snapshot.CustomerId,
+            snapshot.Lines);
+    }
+
+    public static Order Rehydrate(
         OrderStatus status,
         string orderId = "order-1",
         string customerId = "customer-1",
         IEnumerable<OrderLine>? lines = null)
-        => new(status, orderId, customerId, lines);
+        => Rehydrate(new OrderPersistenceSnapshot(
+            orderId,
+            customerId,
+            lines?.ToArray() ?? [new OrderLine("sku-1", 1)],
+            status));
 
     public string OrderId { get; }
 

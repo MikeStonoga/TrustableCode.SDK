@@ -43,7 +43,7 @@ External request DTOs live under `ExternalRequests/`, while admission boundaries
 
 `OrderFactory` shows creation as admitted business intent: external callers can ask to create an order, but cannot inject an arbitrary initial status.
 
-`Order.Rehydrate` exists for loading an already-known persisted state; new business creation should go through the factory.
+`Order.Rehydrate(OrderPersistenceSnapshot)` exists for loading an already-known persisted state; new business creation should go through the factory.
 
 Admission classes turn external input into admitted business intent only after boundary rules pass:
 

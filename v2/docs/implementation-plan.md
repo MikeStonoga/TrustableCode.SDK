@@ -261,3 +261,10 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - Sample `Ordering` passou a expor `Order.Status` como leitura de `StatusState.Current`.
 - Transicoes do sample passaram a usar `.State(order.StatusState)` em vez de callbacks manuais `ReadState` e `ApplyState`.
 - Docs atualizadas para explicar `GovernedState` e `ApplyApproved`.
+
+## Implementado Na Iteracao De Rehydration Explicita
+
+- `OrderPersistenceSnapshot` criado no sample `Ordering` para representar estado confiavel vindo de persistencia.
+- `Order.Rehydrate(OrderPersistenceSnapshot)` adicionado como caminho explicito para recriar agregados ja existentes.
+- Testes passaram a usar snapshot persistido via `OrderingScenarioBuilder`.
+- Docs do sample esclarecem que rehydration nao e criacao de negocio e nao produz evidencia de criacao.

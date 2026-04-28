@@ -10,7 +10,14 @@ internal sealed class OrderingScenarioBuilder
         => new();
 
     public Order RehydratedOrder(OrderStatus status)
-        => Order.Rehydrate(status);
+        => Order.Rehydrate(PersistedOrder(status));
+
+    public OrderPersistenceSnapshot PersistedOrder(OrderStatus status)
+        => new(
+            OrderId: "order-1",
+            CustomerId: "customer-1",
+            Lines: [new OrderLine("sku-1", 1)],
+            Status: status);
 
     public Order CreatedOrder()
         => CreatedOrderResult().Value!;
