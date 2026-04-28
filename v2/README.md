@@ -15,6 +15,11 @@ The current starting package is:
 
 - `TrustableCode.SDK.TrustableModeling`
 
+The current samples are:
+
+- `samples/TrustableCode.SDK.Samples.Ordering`
+- `samples/TrustableCode.SDK.Samples.Ordering.Api`
+
 See `docs/implementation-plan.md` for the living plan and status.
 
 See `docs/application-service-pattern.md` for the recommended application-layer flow using admission, governed transitions, evidence, and side-effect lifecycle.

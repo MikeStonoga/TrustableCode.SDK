@@ -89,6 +89,16 @@ var result = service.PrepareForShipping(
 
 Rejected operations may publish rejection evidence, but they do not save a new snapshot or enqueue success events.
 
+## I Want To See Controllers And EF Core
+
+Use the sibling API sample:
+
+```bash
+dotnet run --project ../TrustableCode.SDK.Samples.Ordering.Api
+```
+
+That project adds ASP.NET Core controllers, EF Core InMemory persistence, EF-backed outbox messages, and EF-backed business evidence while keeping the domain flow in this sample.
+
 ## I Want To Understand State Changes
 
 `Order.Status` is read-only to callers.

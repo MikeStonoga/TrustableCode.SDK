@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\TrustableCode.SDK.TrustableModeling\TrustableCode.SDK.TrustableModeling.csproj" />
     <ProjectReference Include="..\..\samples\TrustableCode.SDK.Samples.Ordering\TrustableCode.SDK.Samples.Ordering.csproj" />
+    <ProjectReference Include="..\..\samples\TrustableCode.SDK.Samples.Ordering.Api\TrustableCode.SDK.Samples.Ordering.Api.csproj" />
   </ItemGroup>
 
 </Project>

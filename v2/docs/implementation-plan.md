@@ -294,3 +294,12 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - `TrustableModelDescriptor` passou a carregar entry points de aplicacao.
 - `AgentContextPacket` passou a renderizar a secao `Application Entry Points`.
 - Descriptor do sample `Ordering` declara `OrderingApplicationService` e `PersistedOrderingApplicationService`.
+
+## Implementado Na Iteracao De API Realista Do Ordering
+
+- Projeto `TrustableCode.SDK.Samples.Ordering.Api` criado com ASP.NET Core controllers.
+- EF Core InMemory adicionado para snapshots de pedido, outbox e business evidence.
+- `EfOrderSnapshotStore`, `EfOrderingOutbox` e `EfBusinessEvidenceSink` criados como adapters de infraestrutura.
+- `OrdersController` expõe criacao e operacoes do pedido por HTTP.
+- `DiagnosticsController` expõe outbox e evidencias para inspecao do sample.
+- Testes validam persistencia EF, evidencia EF e controller de criacao.
