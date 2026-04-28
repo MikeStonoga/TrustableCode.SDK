@@ -287,3 +287,10 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - README do sample `Ordering` reescrito como jornada pratica por tarefas.
 - Secoes adicionadas para criacao de pedido, operacao em memoria, fluxo persistido, estado governado, fronteiras, evidencia e outbox.
 - `class-reference.md` permanece como referencia detalhada classe a classe.
+
+## Implementado Na Iteracao De Entry Points No Contexto De Agente
+
+- `ApplicationEntryPointDescriptor` criado para descrever pontos de entrada de aplicacao.
+- `TrustableModelDescriptor` passou a carregar entry points de aplicacao.
+- `AgentContextPacket` passou a renderizar a secao `Application Entry Points`.
+- Descriptor do sample `Ordering` declara `OrderingApplicationService` e `PersistedOrderingApplicationService`.

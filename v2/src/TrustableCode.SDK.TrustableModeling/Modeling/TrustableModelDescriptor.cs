@@ -13,6 +13,7 @@ public sealed class TrustableModelDescriptor
         Transitions = builder.Transitions.ToArray();
         Invariants = builder.Invariants.ToArray();
         Boundaries = builder.Boundaries.ToArray();
+        ApplicationEntryPoints = builder.ApplicationEntryPoints.ToArray();
         SideEffects = builder.SideEffects.ToArray();
         Evidence = builder.Evidence.ToArray();
         NonGoals = builder.NonGoals.ToArray();
@@ -29,6 +30,8 @@ public sealed class TrustableModelDescriptor
     public IReadOnlyList<InvariantDescriptor> Invariants { get; }
 
     public IReadOnlyList<BoundaryContract> Boundaries { get; }
+
+    public IReadOnlyList<ApplicationEntryPointDescriptor> ApplicationEntryPoints { get; }
 
     public IReadOnlyList<SideEffectContract> SideEffects { get; }
 
@@ -58,6 +61,8 @@ public sealed class TrustableModelDescriptor
         internal List<InvariantDescriptor> Invariants { get; } = [];
 
         internal List<BoundaryContract> Boundaries { get; } = [];
+
+        internal List<ApplicationEntryPointDescriptor> ApplicationEntryPoints { get; } = [];
 
         internal List<SideEffectContract> SideEffects { get; } = [];
 
@@ -96,6 +101,12 @@ public sealed class TrustableModelDescriptor
             return this;
         }
 
+        public Builder AddApplicationEntryPoint(ApplicationEntryPointDescriptor entryPoint)
+        {
+            ApplicationEntryPoints.Add(entryPoint ?? throw new ArgumentNullException(nameof(entryPoint)));
+            return this;
+        }
+
         public Builder AddSideEffect(SideEffectContract sideEffect)
         {
             SideEffects.Add(sideEffect ?? throw new ArgumentNullException(nameof(sideEffect)));
@@ -115,4 +126,3 @@ public sealed class TrustableModelDescriptor
         }
     }
 }
-

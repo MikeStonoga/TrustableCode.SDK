@@ -50,6 +50,9 @@ public sealed record AgentContextPacket(TrustableModelDescriptor Model)
         markdown.AppendLine("## Boundary Rules");
         AppendBoundaryDetails(markdown);
 
+        markdown.AppendLine("## Application Entry Points");
+        AppendApplicationEntryPointDetails(markdown);
+
         markdown.AppendLine("## Side Effects");
         AppendList(markdown, Model.SideEffects.Select(sideEffect =>
             $"{sideEffect.Name}: {sideEffect.Description} [{sideEffect.Consistency}; idempotency={sideEffect.RequiresIdempotencyKey}; compensation={sideEffect.RequiresCompensation}]"));
@@ -124,6 +127,25 @@ public sealed record AgentContextPacket(TrustableModelDescriptor Model)
         }
 
         if (Model.Boundaries.Count == 0)
+        {
+            markdown.AppendLine("- Not declared yet.");
+        }
+
+        markdown.AppendLine();
+    }
+
+    private void AppendApplicationEntryPointDetails(StringBuilder markdown)
+    {
+        foreach (var entryPoint in Model.ApplicationEntryPoints)
+        {
+            markdown.AppendLine($"- {entryPoint.Name}: {entryPoint.Description}");
+            markdown.AppendLine($"  - Use when: {entryPoint.WhenToUse}");
+            AppendNestedList(markdown, "Reads", entryPoint.Reads);
+            AppendNestedList(markdown, "Writes", entryPoint.Writes);
+            AppendNestedList(markdown, "Emits", entryPoint.Emits);
+        }
+
+        if (Model.ApplicationEntryPoints.Count == 0)
         {
             markdown.AppendLine("- Not declared yet.");
         }

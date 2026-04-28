@@ -16,6 +16,7 @@ public sealed class TrustableModelDescriptorTests
         Assert.Equal(6, descriptor.Transitions.Count);
         Assert.Equal(4, descriptor.Invariants.Count);
         Assert.Equal(6, descriptor.Boundaries.Count);
+        Assert.Equal(2, descriptor.ApplicationEntryPoints.Count);
         Assert.Equal(2, descriptor.SideEffects.Count);
         Assert.Equal(11, descriptor.Evidence.Count);
     }
@@ -42,6 +43,9 @@ public sealed class TrustableModelDescriptorTests
         Assert.Contains("Delivered (terminal):", markdown);
         Assert.Contains("## Suggested Reading Order", markdown);
         Assert.Contains("## Expected State Flow", markdown);
+        Assert.Contains("## Application Entry Points", markdown);
+        Assert.Contains("OrderingApplicationService: Runs in-memory application operations over an already loaded Order aggregate.", markdown);
+        Assert.Contains("PersistedOrderingApplicationService: Loads an OrderPersistenceSnapshot, rehydrates an Order, executes governed behavior, saves a new snapshot, and enqueues produced events.", markdown);
         Assert.Contains("PaymentCapturedBeforeShipmentPreparation", markdown);
         Assert.Contains("CreateOrder: External intent -> PlacedAwaitingPayment", markdown);
         Assert.Contains("PrepareForShipping: PaidAwaitingFulfillment -> FulfilledReadyForShipping", markdown);

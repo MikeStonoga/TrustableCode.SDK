@@ -79,6 +79,18 @@ Authoritative state: `Order.Status`
   - Admission rules: `The request must not bypass the shipped-order invariant.`, `The caller must provide a cancellation reason that can be audited.`
   - Rejection evidence: `OrderCancellationRejectedEvidence`
 
+## Application Entry Points
+- OrderingApplicationService: Runs in-memory application operations over an already loaded Order aggregate.
+  - Use when: Use for tests, in-memory workflows, or application layers that already loaded the aggregate.
+  - Reads: `Order.Status`, `ExternalRequests/*`
+  - Writes: `Order.StatusState`, `Order.BusinessEvidence`
+  - Emits: `Transition events`, `BusinessEvidence`, `SideEffectLifecycle evidence`
+- PersistedOrderingApplicationService: Loads an OrderPersistenceSnapshot, rehydrates an Order, executes governed behavior, saves a new snapshot, and enqueues produced events.
+  - Use when: Use when a command targets an order that already exists in persistence.
+  - Reads: `IOrderSnapshotStore`, `OrderPersistenceSnapshot`, `ExternalRequests/*`
+  - Writes: `IOrderSnapshotStore`, `IOrderingOutbox`
+  - Emits: `OrderingOutboxMessage`, `BusinessEvidence`, `SideEffectLifecycle evidence`
+
 ## Side Effects
 - PersistOrderPreparedEvent: Persist and publish the business event through an outbox in the same commit as the order state change. [TransactionalOutbox; idempotency=True; compensation=False]
 - NotifyFulfillment: Notify fulfillment only after the order preparation event is durably recorded. [EventuallyConsistent; idempotency=True; compensation=True]
@@ -116,4 +128,3 @@ Authoritative state: `Order.Status`
 - Do not create orders by directly constructing arbitrary status.
 - Do not allow external callers to submit an arbitrary target order status.
 - Do not publish fulfillment side effects before the business event is durable.
-

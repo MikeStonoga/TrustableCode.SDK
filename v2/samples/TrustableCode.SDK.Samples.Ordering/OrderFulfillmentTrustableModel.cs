@@ -224,6 +224,47 @@ public static class OrderFulfillmentTrustableModel
                 [
                     "OrderCancellationRejectedEvidence"
                 ]))
+            .AddApplicationEntryPoint(new ApplicationEntryPointDescriptor(
+                name: "OrderingApplicationService",
+                description: "Runs in-memory application operations over an already loaded Order aggregate.",
+                whenToUse: "Use for tests, in-memory workflows, or application layers that already loaded the aggregate.",
+                reads:
+                [
+                    "Order.Status",
+                    "ExternalRequests/*"
+                ],
+                writes:
+                [
+                    "Order.StatusState",
+                    "Order.BusinessEvidence"
+                ],
+                emits:
+                [
+                    "Transition events",
+                    "BusinessEvidence",
+                    "SideEffectLifecycle evidence"
+                ]))
+            .AddApplicationEntryPoint(new ApplicationEntryPointDescriptor(
+                name: "PersistedOrderingApplicationService",
+                description: "Loads an OrderPersistenceSnapshot, rehydrates an Order, executes governed behavior, saves a new snapshot, and enqueues produced events.",
+                whenToUse: "Use when a command targets an order that already exists in persistence.",
+                reads:
+                [
+                    "IOrderSnapshotStore",
+                    "OrderPersistenceSnapshot",
+                    "ExternalRequests/*"
+                ],
+                writes:
+                [
+                    "IOrderSnapshotStore",
+                    "IOrderingOutbox"
+                ],
+                emits:
+                [
+                    "OrderingOutboxMessage",
+                    "BusinessEvidence",
+                    "SideEffectLifecycle evidence"
+                ]))
             .AddSideEffect(new SideEffectContract(
                 name: "PersistOrderPreparedEvent",
                 description: "Persist and publish the business event through an outbox in the same commit as the order state change.",
