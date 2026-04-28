@@ -331,3 +331,11 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - Respostas distinguem rejeicao de admissao (`admissionRejected`) de conflito em transicao governada (`transitionRejected`).
 - API passou a serializar enums como strings para facilitar leitura em clientes HTTP.
 - Testes cobrem resposta de sucesso, rejeicao de fronteira e conflito de transicao.
+
+## Implementado Na Iteracao De Swagger Da API Ordering
+
+- Swashbuckle adicionado ao sample `TrustableCode.SDK.Samples.Ordering.Api`.
+- Swagger/OpenAPI configurado com titulo, versao e descricao do sample.
+- Swagger UI fica disponivel em `/swagger`, com redirecionamento de `/` para facilitar exploracao local.
+- Controllers receberam tags e metadados de resposta para documentar endpoints, sucessos e erros.
+- README da API passou a explicar como abrir Swagger UI.

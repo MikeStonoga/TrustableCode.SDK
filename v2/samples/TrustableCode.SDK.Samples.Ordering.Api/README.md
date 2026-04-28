@@ -20,6 +20,14 @@ The API uses EF Core InMemory by default.
 
 If your local ASP.NET Core profile chooses a different port, update `@baseUrl` in `OrderingApi.http`.
 
+Open Swagger UI after the API starts:
+
+```text
+http://localhost:5000/swagger
+```
+
+The root URL redirects to Swagger UI for convenience.
+
 ## Endpoints
 
 Create and inspect orders:
@@ -43,6 +51,7 @@ Inspect application output:
 ## Example
 
 The fastest way to exercise the sample is to run the API and execute the requests in `OrderingApi.http`.
+Use Swagger UI when you want to browse endpoints and response contracts in the browser.
 It includes the full happy path:
 
 ```text
@@ -102,6 +111,7 @@ The API project depends on the domain sample and adapts it to infrastructure:
 - `EfOrderingUnitOfWork` commits the EF changes once per HTTP operation.
 - `OrdersController` maps HTTP requests to application services.
 - `DiagnosticsController` exposes outbox and evidence for sample inspection.
+- Swagger/OpenAPI exposes the sample endpoints and response contracts.
 
 The EF adapters only add changes to the `DbContext`. They do not call `SaveChanges()` directly.
 The controller commits after the operation finishes, including rejected requests that still produce business evidence.
