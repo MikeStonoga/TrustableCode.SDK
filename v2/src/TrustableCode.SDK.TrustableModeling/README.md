@@ -68,6 +68,24 @@ Describes the model's semantic safety envelope: state model, transitions, invari
 
 Turns raw external input into admitted business meaning only after named rules pass.
 
+Use `BusinessAdmission<TInput, TAccepted>.Create(...)` when declaring boundaries fluently:
+
+```csharp
+var admission = BusinessAdmission<ExternalShipOrderRequest, ShipOrderRequirement>
+    .Create("ShipOrderAdmission")
+    .Require(
+        code: "CorrelationIdRequired",
+        description: "A correlation id is required so shipment can be traced.",
+        isSatisfied: request => !string.IsNullOrWhiteSpace(request.CorrelationId),
+        rejectionReason: "A correlation id is required before shipment can be admitted.",
+        rejectionEvidenceName: "OrderShipmentRejectedEvidence")
+    .AcceptWith(request => new ShipOrderRequirement(
+        request.Carrier,
+        request.TrackingCode,
+        request.CorrelationId))
+    .Build();
+```
+
 `GovernedTransition<TState, TContext>`
 
 Executes a state transition through named preconditions, invariants, declared events, and declared evidence.

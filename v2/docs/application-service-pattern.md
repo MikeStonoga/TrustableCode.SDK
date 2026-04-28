@@ -23,6 +23,24 @@ ExternalRequest -> BusinessAdmission -> Requirement -> GovernedTransition -> Bus
 
 ## Admission Then Transition
 
+Declare admission boundaries with the fluent admission builder when that reads better than manually constructing rules:
+
+```csharp
+var admission = BusinessAdmission<ExternalShipOrderRequest, ShipOrderRequirement>
+    .Create("ShipOrderAdmission")
+    .RejectWhen(
+        code: "BoundaryMustReceiveShipmentIntentNotStatus",
+        description: "The boundary accepts shipment facts, not direct status mutation.",
+        shouldReject: request => !string.IsNullOrWhiteSpace(request.RequestedStatus),
+        rejectionReason: "External callers may confirm shipment, but may not submit an arbitrary target order status.",
+        rejectionEvidenceName: "OrderShipmentRejectedEvidence")
+    .AcceptWith(request => new ShipOrderRequirement(
+        request.Carrier,
+        request.TrackingCode,
+        request.CorrelationId))
+    .Build();
+```
+
 Use `TrustableAdmissionFlow.ExecuteTransition` when the application service should stop before domain behavior if admission rejects the input.
 
 ```csharp

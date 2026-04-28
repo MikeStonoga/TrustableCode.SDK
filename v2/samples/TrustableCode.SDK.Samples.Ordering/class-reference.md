@@ -74,11 +74,11 @@ Raw external input requesting cancellation with an auditable reason.
 
 `CapturePaymentAdmission`
 
-Builds a `BusinessAdmission<ExternalCapturePaymentRequest, CapturePaymentRequirement>`. It rejects direct status mutation and missing correlation before payment facts enter the domain.
+Builds a `BusinessAdmission<ExternalCapturePaymentRequest, CapturePaymentRequirement>` with the fluent admission builder. It rejects direct status mutation and missing correlation before payment facts enter the domain.
 
 `PrepareOrderForShippingAdmission`
 
-Builds a `BusinessAdmission<ExternalPrepareOrderForShippingRequest, PrepareOrderForShippingRequirement>`. It admits shipment-preparation intent while rejecting arbitrary target status.
+Builds a `BusinessAdmission<ExternalPrepareOrderForShippingRequest, PrepareOrderForShippingRequirement>` with the fluent admission builder. It admits shipment-preparation intent while rejecting arbitrary target status.
 
 `ShipOrderAdmission`
 

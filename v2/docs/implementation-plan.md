@@ -237,3 +237,11 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - Metadata do pacote `TrustableCode.SDK.TrustableModeling` refinada com titulo, repositorio, tags, descricao e release notes de preview.
 - README especifico do pacote criado em `src/TrustableCode.SDK.TrustableModeling/README.md`.
 - Pacote passou a incluir o README local do projeto em vez do README geral da v2.
+
+## Implementado Na Iteracao De Builder De Admissao
+
+- `BusinessAdmissionBuilder<TInput, TAccepted>` criado para declarar regras de fronteira com menos boilerplate.
+- `BusinessAdmission<TInput, TAccepted>.Create(name)` adicionado como entrada fluente.
+- Builder suporta `Require`, `RejectWhen`, `AcceptWith` e `Build`.
+- Admissions do sample `Ordering` e `OrderFactory` passaram a usar o builder.
+- Docs e README de pacote passaram a mostrar o estilo fluente de admissao.

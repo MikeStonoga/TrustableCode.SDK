@@ -25,6 +25,9 @@ public sealed class BusinessAdmission<TInput, TAccepted>
 
     public string Name { get; }
 
+    public static BusinessAdmissionBuilder<TInput, TAccepted> Create(string name)
+        => new(name);
+
     public AdmissionResult<TAccepted> Admit(TInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
