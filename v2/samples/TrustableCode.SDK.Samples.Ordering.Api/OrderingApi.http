@@ -1,0 +1,123 @@
+@baseUrl = http://localhost:5000
+@orderId = order-http-1
+
+### Create an order
+POST {{baseUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "orderId": "{{orderId}}",
+  "customerId": "customer-http-1",
+  "lines": [
+    { "sku": "sku-1", "quantity": 2 },
+    { "sku": "sku-2", "quantity": 1 }
+  ],
+  "requestedStatus": null,
+  "correlationId": "corr-http-create-1"
+}
+
+### Inspect the persisted order snapshot
+GET {{baseUrl}}/api/orders/{{orderId}}
+
+### Capture payment
+POST {{baseUrl}}/api/orders/{{orderId}}/capture-payment
+Content-Type: application/json
+
+{
+  "paymentCaptured": true,
+  "paymentReference": "pay-http-1",
+  "requestedStatus": null,
+  "correlationId": "corr-http-payment-1"
+}
+
+### Prepare the order for shipping
+POST {{baseUrl}}/api/orders/{{orderId}}/prepare-for-shipping
+Content-Type: application/json
+
+{
+  "paymentCaptured": true,
+  "stockReserved": true,
+  "requestedStatus": "",
+  "correlationId": "corr-http-prepare-1"
+}
+
+### Ship the order
+POST {{baseUrl}}/api/orders/{{orderId}}/ship
+Content-Type: application/json
+
+{
+  "carrier": "DHL",
+  "trackingCode": "TRACK-HTTP-1",
+  "requestedStatus": null,
+  "correlationId": "corr-http-ship-1"
+}
+
+### Deliver the order
+POST {{baseUrl}}/api/orders/{{orderId}}/deliver
+Content-Type: application/json
+
+{
+  "proofOfDeliveryCaptured": true,
+  "deliveredAt": "2026-04-28T12:00:00Z",
+  "requestedStatus": null,
+  "correlationId": "corr-http-deliver-1"
+}
+
+### Inspect the final persisted order snapshot
+GET {{baseUrl}}/api/orders/{{orderId}}
+
+### Inspect outbox messages produced by approved operations
+GET {{baseUrl}}/api/diagnostics/outbox
+
+### Inspect business evidence produced by admissions and transitions
+GET {{baseUrl}}/api/diagnostics/evidence
+
+### Rejection example: external caller cannot create an order directly as Delivered
+POST {{baseUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "orderId": "order-http-rejected-1",
+  "customerId": "customer-http-1",
+  "lines": [
+    { "sku": "sku-1", "quantity": 1 }
+  ],
+  "requestedStatus": "Delivered",
+  "correlationId": "corr-http-rejected-create-1"
+}
+
+### Setup for rejection example: create another order
+POST {{baseUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "orderId": "order-http-no-stock-1",
+  "customerId": "customer-http-1",
+  "lines": [
+    { "sku": "sku-1", "quantity": 1 }
+  ],
+  "requestedStatus": null,
+  "correlationId": "corr-http-no-stock-create-1"
+}
+
+### Setup for rejection example: capture payment on the second order
+POST {{baseUrl}}/api/orders/order-http-no-stock-1/capture-payment
+Content-Type: application/json
+
+{
+  "paymentCaptured": true,
+  "paymentReference": "pay-http-no-stock-1",
+  "requestedStatus": null,
+  "correlationId": "corr-http-no-stock-payment-1"
+}
+
+### Rejection example: paid order cannot be prepared without reserved stock
+POST {{baseUrl}}/api/orders/order-http-no-stock-1/prepare-for-shipping
+Content-Type: application/json
+
+{
+  "paymentCaptured": true,
+  "stockReserved": false,
+  "requestedStatus": "",
+  "correlationId": "corr-http-rejected-prepare-1"
+}

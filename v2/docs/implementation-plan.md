@@ -317,3 +317,10 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - Testes de persistencia da API passaram de EF Core InMemory para SQLite in-memory.
 - Helper de teste abre conexao SQLite compartilhada e cria schema com `EnsureCreated()`.
 - Testes continuam isolados por conexao, mas agora validam comportamento mais proximo de um banco relacional real.
+
+## Implementado Na Iteracao De Exemplos HTTP Da API Ordering
+
+- `OrderingApi.http` adicionado ao sample de API com fluxo completo de pedido.
+- Exemplos cobrem criacao, captura de pagamento, preparacao, envio, entrega, diagnostico de outbox e diagnostico de evidencias.
+- Exemplos de rejeicao mostram tentativa de status externo direto e preparacao sem estoque reservado.
+- README da API passou a apontar para o arquivo `.http` como caminho mais rapido para experimentar o sample.

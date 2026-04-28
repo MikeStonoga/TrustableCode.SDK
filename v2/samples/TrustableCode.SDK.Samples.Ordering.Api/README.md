@@ -18,6 +18,8 @@ dotnet run --project samples/TrustableCode.SDK.Samples.Ordering.Api
 
 The API uses EF Core InMemory by default.
 
+If your local ASP.NET Core profile chooses a different port, update `@baseUrl` in `OrderingApi.http`.
+
 ## Endpoints
 
 Create and inspect orders:
@@ -40,7 +42,16 @@ Inspect application output:
 
 ## Example
 
-Create an order:
+The fastest way to exercise the sample is to run the API and execute the requests in `OrderingApi.http`.
+It includes the full happy path:
+
+```text
+create -> capture-payment -> prepare-for-shipping -> ship -> deliver
+```
+
+It also includes rejection examples showing that external callers cannot directly force a status.
+
+Create request shape:
 
 ```json
 {
@@ -54,7 +65,7 @@ Create an order:
 }
 ```
 
-Prepare it for shipping:
+Prepare-for-shipping request shape:
 
 ```json
 {
@@ -64,6 +75,12 @@ Prepare it for shipping:
   "correlationId": "corr-prepare-1"
 }
 ```
+
+After running the flow, inspect:
+
+- `GET /api/orders/{orderId}` for the persisted snapshot.
+- `GET /api/diagnostics/outbox` for events produced by approved operations.
+- `GET /api/diagnostics/evidence` for business evidence produced by admissions and transitions.
 
 ## Design
 
