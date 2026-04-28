@@ -339,3 +339,10 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - Swagger UI fica disponivel em `/swagger`, com redirecionamento de `/` para facilitar exploracao local.
 - Controllers receberam tags e metadados de resposta para documentar endpoints, sucessos e erros.
 - README da API passou a explicar como abrir Swagger UI.
+
+## Implementado Na Iteracao De Testes HTTP Da API Ordering
+
+- `Microsoft.AspNetCore.Mvc.Testing` adicionado ao projeto de testes.
+- Testes HTTP com `WebApplicationFactory` exercitam o pipeline real do ASP.NET Core.
+- Factory de teste troca a persistencia da API para SQLite in-memory isolado por teste.
+- Testes cobrem Swagger, criacao/consulta de pedido, rejeicao de admissao e conflito de transicao.
