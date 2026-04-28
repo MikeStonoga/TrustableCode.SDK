@@ -94,6 +94,9 @@ public sealed class OrderingApiPersistenceTests
         var created = Assert.IsType<CreatedAtActionResult>(response.Result);
         var body = Assert.IsType<OperationResponse>(created.Value);
         Assert.True(body.Succeeded);
+        Assert.Equal("created", body.Outcome);
+        Assert.Equal("CreateOrder completed successfully.", body.Message);
+        Assert.Null(body.FailureStage);
         Assert.Equal(OrderStatus.PlacedAwaitingPayment, orders.Find("order-1")?.Status);
         Assert.Equal("OrderCreated", Assert.Single(db.OutboxMessages).EventName);
         Assert.Equal("OrderCreatedEvidence", Assert.Single(db.BusinessEvidence).Name);
@@ -132,9 +135,66 @@ public sealed class OrderingApiPersistenceTests
         var badRequest = Assert.IsType<BadRequestObjectResult>(response.Result);
         var body = Assert.IsType<OperationResponse>(badRequest.Value);
         Assert.False(body.Succeeded);
+        Assert.Equal("admissionRejected", body.Outcome);
+        Assert.Equal("admission", body.FailureStage);
+        Assert.Contains("application boundary", body.Message);
         Assert.Empty(db.Orders);
         Assert.Empty(db.OutboxMessages);
         Assert.Equal("OrderCreationRejectedEvidence", Assert.Single(db.BusinessEvidence).Name);
+    }
+
+    [Fact]
+    public void Orders_controller_should_explain_transition_conflicts()
+    {
+        using var connection = CreateOpenConnection();
+        using var db = CreateDbContext(connection);
+        var orders = new EfOrderSnapshotStore(db);
+        var outbox = new EfOrderingOutbox(db);
+        var unitOfWork = new EfOrderingUnitOfWork(db);
+        var evidenceSink = new EfBusinessEvidenceSink(db);
+        var lifecycleStore = new InMemorySideEffectLifecycleStore();
+        var application = new OrderingApplicationService(evidenceSink, lifecycleStore);
+        var persistedApplication = new PersistedOrderingApplicationService(
+            orders,
+            outbox,
+            evidenceSink,
+            lifecycleStore);
+        var controller = new OrdersController(
+            orders,
+            outbox,
+            unitOfWork,
+            application,
+            persistedApplication);
+
+        controller.Create(new ExternalCreateOrderRequest(
+            OrderId: "order-1",
+            CustomerId: "customer-1",
+            Lines: [new OrderLine("sku-1", 1)],
+            RequestedStatus: null,
+            CorrelationId: "corr-api-create-1"));
+        controller.CapturePayment(
+            "order-1",
+            new ExternalCapturePaymentRequest(
+                PaymentCaptured: true,
+                PaymentReference: "pay-api-1",
+                RequestedStatus: null,
+                CorrelationId: "corr-api-payment-1"));
+
+        var response = controller.PrepareForShipping(
+            "order-1",
+            new ExternalPrepareOrderForShippingRequest(
+                PaymentCaptured: true,
+                StockReserved: false,
+                RequestedStatus: "",
+                CorrelationId: "corr-api-reject-transition-1"));
+
+        var conflict = Assert.IsType<ConflictObjectResult>(response.Result);
+        var body = Assert.IsType<OperationResponse>(conflict.Value);
+        Assert.False(body.Succeeded);
+        Assert.Equal("transitionRejected", body.Outcome);
+        Assert.Equal("transition", body.FailureStage);
+        Assert.Contains("governed transition", body.Message);
+        Assert.Equal("PaidAwaitingFulfillment", body.CurrentStatus);
     }
 
     private static SqliteConnection CreateOpenConnection()

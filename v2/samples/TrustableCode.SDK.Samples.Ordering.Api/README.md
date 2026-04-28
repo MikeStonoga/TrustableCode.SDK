@@ -82,6 +82,15 @@ After running the flow, inspect:
 - `GET /api/diagnostics/outbox` for events produced by approved operations.
 - `GET /api/diagnostics/evidence` for business evidence produced by admissions and transitions.
 
+Operation responses include a developer-facing summary:
+
+- `outcome`: `created`, `applied`, `alreadyApplied`, `admissionRejected`, or `transitionRejected`.
+- `message`: a short explanation of what happened.
+- `failureStage`: `admission` for boundary rejections, `transition` for governed transition conflicts, or `null` on success.
+- `currentStatus`: the aggregate status after the operation, when an order was available.
+- `rejectionReasons`: the raw business reasons from the admission or transition.
+- `sideEffectLifecycle`: the planned/persisted/published side effect record when an operation emits one.
+
 ## Design
 
 The API project depends on the domain sample and adapts it to infrastructure:
@@ -96,5 +105,7 @@ The API project depends on the domain sample and adapts it to infrastructure:
 
 The EF adapters only add changes to the `DbContext`. They do not call `SaveChanges()` directly.
 The controller commits after the operation finishes, including rejected requests that still produce business evidence.
+
+The API configures JSON enum serialization as strings so order and transition statuses are readable in HTTP clients.
 
 The SDK still does not own the web framework, database, or outbox transport. Those remain application concerns.

@@ -324,3 +324,10 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - Exemplos cobrem criacao, captura de pagamento, preparacao, envio, entrega, diagnostico de outbox e diagnostico de evidencias.
 - Exemplos de rejeicao mostram tentativa de status externo direto e preparacao sem estoque reservado.
 - README da API passou a apontar para o arquivo `.http` como caminho mais rapido para experimentar o sample.
+
+## Implementado Na Iteracao De Respostas HTTP Explicitas Da API Ordering
+
+- `OperationResponse` passou a expor `outcome`, `message`, `failureStage`, `currentStatus` e `sideEffectLifecycle`.
+- Respostas distinguem rejeicao de admissao (`admissionRejected`) de conflito em transicao governada (`transitionRejected`).
+- API passou a serializar enums como strings para facilitar leitura em clientes HTTP.
+- Testes cobrem resposta de sucesso, rejeicao de fronteira e conflito de transicao.
