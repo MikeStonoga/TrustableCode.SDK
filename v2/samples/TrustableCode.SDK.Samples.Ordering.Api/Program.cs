@@ -13,6 +13,7 @@ builder.Services.AddDbContext<OrderingDbContext>(options =>
 builder.Services.AddScoped<IOrderSnapshotStore, EfOrderSnapshotStore>();
 builder.Services.AddScoped<IOrderingOutbox, EfOrderingOutbox>();
 builder.Services.AddScoped<IBusinessEvidenceSink, EfBusinessEvidenceSink>();
+builder.Services.AddScoped<IOrderingUnitOfWork, EfOrderingUnitOfWork>();
 builder.Services.AddSingleton<ISideEffectLifecycleStore, InMemorySideEffectLifecycleStore>();
 builder.Services.AddScoped<OrderingApplicationService>();
 builder.Services.AddScoped<PersistedOrderingApplicationService>();

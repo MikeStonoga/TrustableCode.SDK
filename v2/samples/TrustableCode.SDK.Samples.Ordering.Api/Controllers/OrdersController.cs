@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TrustableCode.SDK.Samples.Ordering;
 using TrustableCode.SDK.Samples.Ordering.Api.Models;
+using TrustableCode.SDK.Samples.Ordering.Api.Persistence;
 
 namespace TrustableCode.SDK.Samples.Ordering.Api.Controllers;
 
@@ -9,6 +10,7 @@ namespace TrustableCode.SDK.Samples.Ordering.Api.Controllers;
 public sealed class OrdersController(
     IOrderSnapshotStore orders,
     IOrderingOutbox outbox,
+    IOrderingUnitOfWork unitOfWork,
     OrderingApplicationService application,
     PersistedOrderingApplicationService persistedApplication) : ControllerBase
 {
@@ -28,12 +30,14 @@ public sealed class OrdersController(
         var result = application.CreateOrder(request);
         if (!result.Succeeded)
         {
+            unitOfWork.Commit();
             return BadRequest(OperationResponse.From(result));
         }
 
         var order = result.Order!;
         orders.Save(OrderPersistenceSnapshot.From(order));
         EnqueueProducedEvents(order.OrderId, request.CorrelationId, result.ProducedEvents);
+        unitOfWork.Commit();
 
         return CreatedAtAction(
             nameof(Get),
@@ -101,6 +105,7 @@ public sealed class OrdersController(
         try
         {
             var result = execute();
+            unitOfWork.Commit();
             if (!result.Succeeded)
             {
                 return result.WasAccepted

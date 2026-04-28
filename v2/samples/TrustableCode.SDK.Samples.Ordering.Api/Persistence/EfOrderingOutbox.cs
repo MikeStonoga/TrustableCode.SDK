@@ -15,7 +15,5 @@ public sealed class EfOrderingOutbox(OrderingDbContext db) : IOrderingOutbox
             OrderId = message.OrderId,
             CorrelationId = message.CorrelationId
         });
-
-        db.SaveChanges();
     }
 }

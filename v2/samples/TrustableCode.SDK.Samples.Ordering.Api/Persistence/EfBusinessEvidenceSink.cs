@@ -18,7 +18,5 @@ public sealed class EfBusinessEvidenceSink(OrderingDbContext db) : IBusinessEvid
             ObservedAt = evidence.ObservedAt,
             MetadataJson = JsonSerializer.Serialize(evidence.Metadata)
         });
-
-        db.SaveChanges();
     }
 }

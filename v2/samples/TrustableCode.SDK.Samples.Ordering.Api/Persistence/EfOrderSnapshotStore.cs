@@ -48,7 +48,6 @@ public sealed class EfOrderSnapshotStore(OrderingDbContext db) : IOrderSnapshotS
                 .ToList();
         }
 
-        db.SaveChanges();
     }
 
     private static OrderPersistenceSnapshot ToSnapshot(OrderSnapshotEntity entity)

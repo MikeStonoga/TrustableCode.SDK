@@ -73,7 +73,11 @@ The API project depends on the domain sample and adapts it to infrastructure:
 - `EfOrderSnapshotStore` implements `IOrderSnapshotStore`.
 - `EfOrderingOutbox` implements `IOrderingOutbox`.
 - `EfBusinessEvidenceSink` implements `IBusinessEvidenceSink`.
+- `EfOrderingUnitOfWork` commits the EF changes once per HTTP operation.
 - `OrdersController` maps HTTP requests to application services.
 - `DiagnosticsController` exposes outbox and evidence for sample inspection.
+
+The EF adapters only add changes to the `DbContext`. They do not call `SaveChanges()` directly.
+The controller commits after the operation finishes, including rejected requests that still produce business evidence.
 
 The SDK still does not own the web framework, database, or outbox transport. Those remain application concerns.

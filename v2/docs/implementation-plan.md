@@ -303,3 +303,11 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - `OrdersController` expõe criacao e operacoes do pedido por HTTP.
 - `DiagnosticsController` expõe outbox e evidencias para inspecao do sample.
 - Testes validam persistencia EF, evidencia EF e controller de criacao.
+
+## Implementado Na Iteracao De Unit Of Work Da API Ordering
+
+- `IOrderingUnitOfWork` e `EfOrderingUnitOfWork` adicionados ao sample de API.
+- Adapters EF passaram a registrar mudancas no `DbContext` sem chamar `SaveChanges()` individualmente.
+- `OrdersController` passou a commitar uma vez por operacao HTTP.
+- Rejeicoes de fronteira tambem sao commitadas para preservar evidencias de negocio mesmo sem snapshot ou outbox.
+- Testes cobrem persistencia explicita via unit of work e evidencia de rejeicao na API.

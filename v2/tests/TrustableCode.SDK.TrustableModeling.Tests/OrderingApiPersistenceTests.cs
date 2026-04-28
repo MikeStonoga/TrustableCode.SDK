@@ -15,16 +15,20 @@ public sealed class OrderingApiPersistenceTests
     [Fact]
     public void Ef_order_snapshot_store_should_save_and_load_order_snapshot()
     {
-        using var db = CreateDbContext();
+        var databaseName = Guid.NewGuid().ToString();
+        using var db = CreateDbContext(databaseName);
         var store = new EfOrderSnapshotStore(db);
+        var unitOfWork = new EfOrderingUnitOfWork(db);
 
         store.Save(new OrderPersistenceSnapshot(
             OrderId: "order-1",
             CustomerId: "customer-1",
             Lines: [new OrderLine("sku-1", 2)],
             Status: OrderStatus.PaidAwaitingFulfillment));
+        unitOfWork.Commit();
 
-        var snapshot = store.Find("order-1");
+        using var reloadedDb = CreateDbContext(databaseName);
+        var snapshot = new EfOrderSnapshotStore(reloadedDb).Find("order-1");
 
         Assert.NotNull(snapshot);
         Assert.Equal(OrderStatus.PaidAwaitingFulfillment, snapshot.Status);
@@ -36,6 +40,7 @@ public sealed class OrderingApiPersistenceTests
     {
         using var db = CreateDbContext();
         var sink = new EfBusinessEvidenceSink(db);
+        var unitOfWork = new EfOrderingUnitOfWork(db);
 
         sink.Record(new BusinessEvidence(
             name: "OrderRejectedEvidence",
@@ -46,6 +51,7 @@ public sealed class OrderingApiPersistenceTests
             {
                 ["admission.name"] = "CreateOrderAdmission"
             }));
+        unitOfWork.Commit();
 
         var evidence = Assert.Single(db.BusinessEvidence);
         Assert.Equal("OrderRejectedEvidence", evidence.Name);
@@ -59,6 +65,7 @@ public sealed class OrderingApiPersistenceTests
         using var db = CreateDbContext();
         var orders = new EfOrderSnapshotStore(db);
         var outbox = new EfOrderingOutbox(db);
+        var unitOfWork = new EfOrderingUnitOfWork(db);
         var evidenceSink = new EfBusinessEvidenceSink(db);
         var lifecycleStore = new InMemorySideEffectLifecycleStore();
         var application = new OrderingApplicationService(evidenceSink, lifecycleStore);
@@ -70,6 +77,7 @@ public sealed class OrderingApiPersistenceTests
         var controller = new OrdersController(
             orders,
             outbox,
+            unitOfWork,
             application,
             persistedApplication);
 
@@ -88,10 +96,47 @@ public sealed class OrderingApiPersistenceTests
         Assert.Equal("OrderCreatedEvidence", Assert.Single(db.BusinessEvidence).Name);
     }
 
-    private static OrderingDbContext CreateDbContext()
+    [Fact]
+    public void Orders_controller_should_commit_rejection_evidence_without_snapshot_or_outbox()
+    {
+        using var db = CreateDbContext();
+        var orders = new EfOrderSnapshotStore(db);
+        var outbox = new EfOrderingOutbox(db);
+        var unitOfWork = new EfOrderingUnitOfWork(db);
+        var evidenceSink = new EfBusinessEvidenceSink(db);
+        var lifecycleStore = new InMemorySideEffectLifecycleStore();
+        var application = new OrderingApplicationService(evidenceSink, lifecycleStore);
+        var persistedApplication = new PersistedOrderingApplicationService(
+            orders,
+            outbox,
+            evidenceSink,
+            lifecycleStore);
+        var controller = new OrdersController(
+            orders,
+            outbox,
+            unitOfWork,
+            application,
+            persistedApplication);
+
+        var response = controller.Create(new ExternalCreateOrderRequest(
+            OrderId: "order-1",
+            CustomerId: "customer-1",
+            Lines: [new OrderLine("sku-1", 1)],
+            RequestedStatus: "Delivered",
+            CorrelationId: "corr-api-reject-1"));
+
+        var badRequest = Assert.IsType<BadRequestObjectResult>(response.Result);
+        var body = Assert.IsType<OperationResponse>(badRequest.Value);
+        Assert.False(body.Succeeded);
+        Assert.Empty(db.Orders);
+        Assert.Empty(db.OutboxMessages);
+        Assert.Equal("OrderCreationRejectedEvidence", Assert.Single(db.BusinessEvidence).Name);
+    }
+
+    private static OrderingDbContext CreateDbContext(string? databaseName = null)
     {
         var options = new DbContextOptionsBuilder<OrderingDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(databaseName ?? Guid.NewGuid().ToString())
             .Options;
 
         return new OrderingDbContext(options);
