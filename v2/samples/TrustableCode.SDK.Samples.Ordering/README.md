@@ -59,6 +59,8 @@ Admission classes turn external input into admitted business intent only after b
 
 `OrderingEvidencePublisher` shows how business evidence can be forwarded to a sink without coupling the domain model to logging or tracing infrastructure.
 
+`PersistedOrderingApplicationService` shows the same application flow around persisted snapshots and an in-memory outbox: load, rehydrate, execute, save, enqueue produced events, and publish evidence.
+
 `ActivitySourceBusinessEvidenceSink` can then turn the same evidence into trace activities with business-oriented tags.
 
 `LoggerBusinessEvidenceSink` emits the same evidence through `ILogger` with stable structured fields.

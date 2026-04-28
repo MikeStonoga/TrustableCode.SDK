@@ -24,6 +24,10 @@ The recommended application-layer entry point for the sample. It shows the pract
 
 Small result returned by `OrderingApplicationService`. It exposes whether admission passed, transition status, current order status, rejection reasons, produced events/evidence, and the optional side-effect lifecycle record.
 
+`PersistedOrderingApplicationService`
+
+Application-layer example that loads an `OrderPersistenceSnapshot`, rehydrates the aggregate, executes governed behavior, saves the updated snapshot, and enqueues produced events into an outbox.
+
 `Order`
 
 The executable aggregate in the sample. It owns `Status`, records produced event names, records evidence names, and exposes methods such as `CapturePayment`, `PrepareForShipping`, `Ship`, `Deliver`, and `Cancel`. Each method delegates to a specialized transition instead of changing status inline.
@@ -37,6 +41,14 @@ The creation boundary for new orders. It accepts `ExternalCreateOrderRequest`, a
 `OrderPersistenceSnapshot`
 
 Persistence-facing shape used to rehydrate an order that already exists in storage. It restores identity, lines, and trusted persisted status without recording creation evidence. It is not a creation command.
+
+`IOrderSnapshotStore` and `InMemoryOrderSnapshotStore`
+
+Minimal repository contract and in-memory implementation for persistence examples. They store snapshots, not live aggregate instances.
+
+`IOrderingOutbox`, `InMemoryOrderingOutbox`, and `OrderingOutboxMessage`
+
+Minimal outbox contract, in-memory implementation, and message shape used to show produced events being recorded after a successful transition.
 
 `OrderStatus`
 

@@ -268,3 +268,10 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - `Order.Rehydrate(OrderPersistenceSnapshot)` adicionado como caminho explicito para recriar agregados ja existentes.
 - Testes passaram a usar snapshot persistido via `OrderingScenarioBuilder`.
 - Docs do sample esclarecem que rehydration nao e criacao de negocio e nao produz evidencia de criacao.
+
+## Implementado Na Iteracao De Persistencia E Outbox Em Memoria
+
+- `IOrderSnapshotStore` e `InMemoryOrderSnapshotStore` criados no sample `Ordering`.
+- `IOrderingOutbox`, `InMemoryOrderingOutbox` e `OrderingOutboxMessage` criados para demonstrar outbox simples.
+- `PersistedOrderingApplicationService` criado para carregar snapshot, reidratar aggregate, executar transicao, salvar snapshot atualizado e enfileirar eventos produzidos.
+- Testes cobrem preparacao persistida com snapshot/outbox/evidencia e rejeicao sem salvar nem enfileirar evento.
