@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TrustableCode.SDK.Samples.Ordering;
@@ -15,8 +16,8 @@ public sealed class OrderingApiPersistenceTests
     [Fact]
     public void Ef_order_snapshot_store_should_save_and_load_order_snapshot()
     {
-        var databaseName = Guid.NewGuid().ToString();
-        using var db = CreateDbContext(databaseName);
+        using var connection = CreateOpenConnection();
+        using var db = CreateDbContext(connection);
         var store = new EfOrderSnapshotStore(db);
         var unitOfWork = new EfOrderingUnitOfWork(db);
 
@@ -27,7 +28,7 @@ public sealed class OrderingApiPersistenceTests
             Status: OrderStatus.PaidAwaitingFulfillment));
         unitOfWork.Commit();
 
-        using var reloadedDb = CreateDbContext(databaseName);
+        using var reloadedDb = CreateDbContext(connection);
         var snapshot = new EfOrderSnapshotStore(reloadedDb).Find("order-1");
 
         Assert.NotNull(snapshot);
@@ -38,7 +39,8 @@ public sealed class OrderingApiPersistenceTests
     [Fact]
     public void Ef_business_evidence_sink_should_persist_structured_evidence()
     {
-        using var db = CreateDbContext();
+        using var connection = CreateOpenConnection();
+        using var db = CreateDbContext(connection);
         var sink = new EfBusinessEvidenceSink(db);
         var unitOfWork = new EfOrderingUnitOfWork(db);
 
@@ -62,7 +64,8 @@ public sealed class OrderingApiPersistenceTests
     [Fact]
     public void Orders_controller_should_create_order_and_persist_snapshot_outbox_and_evidence()
     {
-        using var db = CreateDbContext();
+        using var connection = CreateOpenConnection();
+        using var db = CreateDbContext(connection);
         var orders = new EfOrderSnapshotStore(db);
         var outbox = new EfOrderingOutbox(db);
         var unitOfWork = new EfOrderingUnitOfWork(db);
@@ -99,7 +102,8 @@ public sealed class OrderingApiPersistenceTests
     [Fact]
     public void Orders_controller_should_commit_rejection_evidence_without_snapshot_or_outbox()
     {
-        using var db = CreateDbContext();
+        using var connection = CreateOpenConnection();
+        using var db = CreateDbContext(connection);
         var orders = new EfOrderSnapshotStore(db);
         var outbox = new EfOrderingOutbox(db);
         var unitOfWork = new EfOrderingUnitOfWork(db);
@@ -133,12 +137,25 @@ public sealed class OrderingApiPersistenceTests
         Assert.Equal("OrderCreationRejectedEvidence", Assert.Single(db.BusinessEvidence).Name);
     }
 
-    private static OrderingDbContext CreateDbContext(string? databaseName = null)
+    private static SqliteConnection CreateOpenConnection()
     {
+        var connection = new SqliteConnection("Data Source=:memory:");
+        connection.Open();
+
+        return connection;
+    }
+
+    private static OrderingDbContext CreateDbContext(SqliteConnection connection)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+
         var options = new DbContextOptionsBuilder<OrderingDbContext>()
-            .UseInMemoryDatabase(databaseName ?? Guid.NewGuid().ToString())
+            .UseSqlite(connection)
             .Options;
 
-        return new OrderingDbContext(options);
+        var db = new OrderingDbContext(options);
+        db.Database.EnsureCreated();
+
+        return db;
     }
 }

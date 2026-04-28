@@ -311,3 +311,9 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - `OrdersController` passou a commitar uma vez por operacao HTTP.
 - Rejeicoes de fronteira tambem sao commitadas para preservar evidencias de negocio mesmo sem snapshot ou outbox.
 - Testes cobrem persistencia explicita via unit of work e evidencia de rejeicao na API.
+
+## Implementado Na Iteracao De Testes Relacionais Da API Ordering
+
+- Testes de persistencia da API passaram de EF Core InMemory para SQLite in-memory.
+- Helper de teste abre conexao SQLite compartilhada e cria schema com `EnsureCreated()`.
+- Testes continuam isolados por conexao, mas agora validam comportamento mais proximo de um banco relacional real.
