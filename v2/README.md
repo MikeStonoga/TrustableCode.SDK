@@ -19,6 +19,8 @@ See `docs/implementation-plan.md` for the living plan and status.
 
 See `docs/application-service-pattern.md` for the recommended application-layer flow using admission, governed transitions, evidence, and side-effect lifecycle.
 
+See `docs/persisted-application-flow.md` for the recommended persisted aggregate flow using snapshots, rehydration, save, outbox, and evidence.
+
 See `docs/evidence-conventions.md` for the logging and tracing field conventions used by `BusinessEvidence`.
 
 See `docs/testing-helpers.md` for framework-neutral checks used to test transitions, admissions, invariants, side effects, and evidence.

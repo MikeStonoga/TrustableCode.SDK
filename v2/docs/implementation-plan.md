@@ -275,3 +275,9 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - `IOrderingOutbox`, `InMemoryOrderingOutbox` e `OrderingOutboxMessage` criados para demonstrar outbox simples.
 - `PersistedOrderingApplicationService` criado para carregar snapshot, reidratar aggregate, executar transicao, salvar snapshot atualizado e enfileirar eventos produzidos.
 - Testes cobrem preparacao persistida com snapshot/outbox/evidencia e rejeicao sem salvar nem enfileirar evento.
+
+## Implementado Na Iteracao De Guia De Fluxo Persistido
+
+- `docs/persisted-application-flow.md` criado para documentar snapshot, rehydration, save, outbox e evidencia.
+- Guia separa explicitamente o que deve ficar na aplicacao e o que deve ficar no SDK.
+- `v2/README.md` e `docs/application-service-pattern.md` passaram a apontar para o guia persistido.

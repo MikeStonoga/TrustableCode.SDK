@@ -137,3 +137,5 @@ See:
 - `samples/TrustableCode.SDK.Samples.Ordering/agent-context.md`
 
 The sample shows creation, payment capture, shipment preparation, shipping, delivery, cancellation, evidence publishing, and side-effect lifecycle in one place.
+
+For the same flow around persisted snapshots and an outbox, see `docs/persisted-application-flow.md`.
