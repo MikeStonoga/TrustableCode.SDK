@@ -10,17 +10,17 @@ Use this dependency direction:
 
 ```text
 Controller -> Persisted Application Service -> Application Service -> Trustable SDK primitives
-Controller -> Unit Of Work commit
+Persisted Application Service -> Unit Of Work commit
 Infrastructure adapters -> EF Core / database / outbox tables
 ```
 
 Keep these responsibilities separate:
 
-- Controllers translate HTTP into external request records, call application services, choose HTTP status codes, and commit the request boundary.
+- Controllers translate HTTP into external request records, call application services, and choose HTTP status codes.
 - Application services compose admissions, requirements, governed transitions, evidence, and side-effect lifecycle.
 - Persisted application services load snapshots, rehydrate aggregates, save successful snapshots, and enqueue successful outbox events.
 - EF adapters implement persistence ports such as snapshot store, outbox, evidence sink, and lifecycle store.
-- Unit of Work commits the database once per HTTP operation.
+- Unit of Work is invoked by the persisted application service once per application operation.
 - Diagnostics endpoints expose sample state, but production systems should usually use observability and admin tooling instead.
 
 ## Service Registration
@@ -83,7 +83,7 @@ public sealed class EfOrderingOutbox(OrderingDbContext db) : IOrderingOutbox
 }
 ```
 
-Commit once at the operation boundary:
+Commit once at the application operation boundary:
 
 ```csharp
 public sealed class EfOrderingUnitOfWork(OrderingDbContext db) : IOrderingUnitOfWork
@@ -101,7 +101,6 @@ Controllers should not mutate aggregate state directly. They should call the app
 
 ```csharp
 var result = persistedApplication.CreateOrder(request);
-unitOfWork.Commit();
 
 if (!result.Succeeded)
 {
@@ -112,7 +111,7 @@ return CreatedAtAction(nameof(Get), new { orderId = result.Order!.OrderId }, Ope
 ```
 
 Snapshot persistence and outbox enqueueing belong inside the persisted application service, not in the controller.
-The controller owns HTTP translation and the request-level commit.
+The controller owns HTTP translation only. Transaction commit belongs to the persisted application service.
 
 Use different HTTP outcomes for different trustable outcomes:
 
@@ -172,5 +171,5 @@ This catches routing, serialization, dependency injection, status codes, and per
 - Transitions own state changes through governed rules.
 - Evidence is recorded for accepted, rejected, and side-effect operations.
 - Outbox messages are produced only after successful operations.
-- Unit of Work commits once per HTTP operation.
+- Unit of Work commits once per application operation.
 - Tests cover success, admission rejection, transition rejection, persistence, and HTTP JSON.

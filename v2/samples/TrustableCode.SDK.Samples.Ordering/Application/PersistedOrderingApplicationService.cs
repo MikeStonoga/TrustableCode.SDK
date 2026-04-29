@@ -10,16 +10,19 @@ public sealed class PersistedOrderingApplicationService
 {
     private readonly IOrderSnapshotStore _orders;
     private readonly IOrderingOutbox _outbox;
+    private readonly IOrderingUnitOfWork _unitOfWork;
     private readonly OrderingApplicationService _application;
 
     public PersistedOrderingApplicationService(
         IOrderSnapshotStore orders,
         IOrderingOutbox outbox,
+        IOrderingUnitOfWork unitOfWork,
         IBusinessEvidenceSink evidenceSink,
         ISideEffectLifecycleStore sideEffectLifecycleStore)
     {
         _orders = orders ?? throw new ArgumentNullException(nameof(orders));
         _outbox = outbox ?? throw new ArgumentNullException(nameof(outbox));
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _application = new OrderingApplicationService(evidenceSink, sideEffectLifecycleStore);
     }
 
@@ -30,12 +33,14 @@ public sealed class PersistedOrderingApplicationService
         var result = _application.CreateOrder(request);
         if (!result.Succeeded)
         {
+            _unitOfWork.Commit();
             return result;
         }
 
         var order = result.Order!;
         _orders.Save(OrderPersistenceSnapshot.From(order));
         EnqueueProducedEvents(order.OrderId, request.CorrelationId, result.ProducedEvents);
+        _unitOfWork.Commit();
 
         return result;
     }
@@ -105,11 +110,13 @@ public sealed class PersistedOrderingApplicationService
 
         if (!result.Succeeded)
         {
+            _unitOfWork.Commit();
             return result;
         }
 
         _orders.Save(OrderPersistenceSnapshot.From(order));
         EnqueueProducedEvents(order.OrderId, correlationId, result.ProducedEvents);
+        _unitOfWork.Commit();
 
         return result;
     }

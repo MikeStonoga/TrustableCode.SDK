@@ -102,7 +102,7 @@ In web APIs, keep HTTP and persistence at the edges:
 
 ```text
 Controller -> Persisted Application Service -> Application Service -> Trustable SDK primitives
-Controller -> Unit Of Work commit
+Persisted Application Service -> Unit Of Work commit
 Infrastructure adapters -> EF Core / database / outbox tables
 ```
 
@@ -113,8 +113,8 @@ Recommended HTTP mapping:
 - missing persisted aggregate: `404 Not Found`
 - applied or already-applied operation: `200 OK` or `201 Created`
 
-Snapshot persistence and outbox enqueueing should live in the application layer, not in controllers.
-Adapters should add changes to the current persistence context. A Unit of Work should commit once per HTTP operation, including rejected admissions when rejection evidence was recorded.
+Snapshot persistence, outbox enqueueing, and Unit of Work commit should live in the application layer, not in controllers.
+Adapters should add changes to the current persistence context. A Unit of Work should commit once per application operation, including rejected admissions when rejection evidence was recorded.
 
 The repository sample includes an ASP.NET Core API with controllers, EF Core SQLite, outbox storage, evidence storage, side-effect lifecycle persistence, Swagger, `.http` examples, and `WebApplicationFactory` tests.
 

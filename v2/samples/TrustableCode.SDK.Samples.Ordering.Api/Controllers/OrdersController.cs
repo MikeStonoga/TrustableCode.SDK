@@ -11,7 +11,6 @@ namespace TrustableCode.SDK.Samples.Ordering.Api.Controllers;
 [Tags("Orders")]
 public sealed class OrdersController(
     IOrderSnapshotStore orders,
-    IOrderingUnitOfWork unitOfWork,
     PersistedOrderingApplicationService persistedApplication) : ControllerBase
 {
     [HttpGet("{orderId}")]
@@ -32,7 +31,6 @@ public sealed class OrdersController(
     public ActionResult<OperationResponse> Create(ExternalCreateOrderRequest request)
     {
         var result = persistedApplication.CreateOrder(request);
-        unitOfWork.Commit();
 
         if (!result.Succeeded)
         {
@@ -100,7 +98,6 @@ public sealed class OrdersController(
         try
         {
             var result = execute();
-            unitOfWork.Commit();
             if (!result.Succeeded)
             {
                 return result.WasAccepted

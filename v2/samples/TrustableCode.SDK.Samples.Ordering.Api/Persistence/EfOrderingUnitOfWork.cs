@@ -1,3 +1,5 @@
+using TrustableCode.SDK.Samples.Ordering;
+
 namespace TrustableCode.SDK.Samples.Ordering.Api.Persistence;
 
 public sealed class EfOrderingUnitOfWork(OrderingDbContext db) : IOrderingUnitOfWork

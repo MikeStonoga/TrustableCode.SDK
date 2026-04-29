@@ -75,6 +75,7 @@ orders.Save(new OrderPersistenceSnapshot(
 var service = new PersistedOrderingApplicationService(
     orders,
     outbox,
+    unitOfWork,
     evidenceSink,
     sideEffectLifecycleStore);
 
@@ -97,7 +98,7 @@ Use the sibling API sample:
 dotnet run --project ../TrustableCode.SDK.Samples.Ordering.Api
 ```
 
-That project adds ASP.NET Core controllers, EF Core InMemory persistence, EF-backed outbox messages, and EF-backed business evidence while keeping the domain flow in this sample.
+That project adds ASP.NET Core controllers, SQLite/EF Core persistence, EF-backed outbox messages, EF-backed business evidence, and EF-backed side-effect lifecycle while keeping the domain flow in this sample.
 
 ## I Want To Understand State Changes
 

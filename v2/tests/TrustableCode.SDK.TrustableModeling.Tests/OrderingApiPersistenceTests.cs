@@ -105,11 +105,11 @@ public sealed class OrderingApiPersistenceTests
         var persistedApplication = new PersistedOrderingApplicationService(
             orders,
             outbox,
+            unitOfWork,
             evidenceSink,
             lifecycleStore);
         var controller = new OrdersController(
             orders,
-            unitOfWork,
             persistedApplication);
 
         var response = controller.Create(new ExternalCreateOrderRequest(
@@ -131,7 +131,7 @@ public sealed class OrderingApiPersistenceTests
     }
 
     [Fact]
-    public void Orders_controller_should_commit_rejection_evidence_without_snapshot_or_outbox()
+    public void Orders_controller_should_return_rejection_after_application_commits_evidence()
     {
         using var connection = CreateOpenConnection();
         using var db = CreateDbContext(connection);
@@ -143,11 +143,11 @@ public sealed class OrderingApiPersistenceTests
         var persistedApplication = new PersistedOrderingApplicationService(
             orders,
             outbox,
+            unitOfWork,
             evidenceSink,
             lifecycleStore);
         var controller = new OrdersController(
             orders,
-            unitOfWork,
             persistedApplication);
 
         var response = controller.Create(new ExternalCreateOrderRequest(
@@ -181,11 +181,11 @@ public sealed class OrderingApiPersistenceTests
         var persistedApplication = new PersistedOrderingApplicationService(
             orders,
             outbox,
+            unitOfWork,
             evidenceSink,
             lifecycleStore);
         var controller = new OrdersController(
             orders,
-            unitOfWork,
             persistedApplication);
 
         controller.Create(new ExternalCreateOrderRequest(

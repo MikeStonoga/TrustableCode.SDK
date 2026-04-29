@@ -1,4 +1,4 @@
-namespace TrustableCode.SDK.Samples.Ordering.Api.Persistence;
+namespace TrustableCode.SDK.Samples.Ordering;
 
 public interface IOrderingUnitOfWork
 {

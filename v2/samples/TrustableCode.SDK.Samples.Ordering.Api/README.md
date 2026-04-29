@@ -133,7 +133,7 @@ The API project depends on the domain sample and adapts it to infrastructure:
 - Swagger/OpenAPI exposes the sample endpoints and response contracts.
 
 The EF adapters only add changes to the `DbContext`. They do not call `SaveChanges()` directly.
-The controller commits after the operation finishes, including rejected requests that still produce business evidence.
+The persisted application service commits after the operation finishes, including rejected requests that still produce business evidence.
 
 The API configures JSON enum serialization as strings so order and transition statuses are readable in HTTP clients.
 

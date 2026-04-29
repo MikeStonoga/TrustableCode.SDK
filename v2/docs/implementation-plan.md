@@ -308,7 +308,7 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 
 - `IOrderingUnitOfWork` e `EfOrderingUnitOfWork` adicionados ao sample de API.
 - Adapters EF passaram a registrar mudancas no `DbContext` sem chamar `SaveChanges()` individualmente.
-- `OrdersController` passou a commitar uma vez por operacao HTTP.
+- A API passou a commitar uma vez por operacao HTTP.
 - Rejeicoes de fronteira tambem sao commitadas para preservar evidencias de negocio mesmo sem snapshot ou outbox.
 - Testes cobrem persistencia explicita via unit of work e evidencia de rejeicao na API.
 
@@ -389,5 +389,13 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 
 - Persistencia de snapshot e enqueue de outbox foram removidos do `OrdersController`.
 - `PersistedOrderingApplicationService` passou a orquestrar criacao, captura de pagamento, preparo, envio, entrega e cancelamento.
-- Controller ficou responsavel por consulta, chamada da aplicacao persistida, commit da request e mapeamento HTTP.
+- Controller ficou responsavel por consulta, chamada da aplicacao persistida e mapeamento HTTP.
 - Guia ASP.NET Core foi corrigido para explicitar que snapshot/outbox pertencem a camada de aplicacao, nao ao controller.
+
+## Implementado Na Iteracao De Unit Of Work Na Aplicacao Ordering
+
+- `IOrderingUnitOfWork` foi movido para o sample de aplicacao Ordering.
+- `InMemoryOrderingUnitOfWork` foi adicionado para testes e fluxos em memoria.
+- `PersistedOrderingApplicationService` passou a commitar a operacao depois de sucesso ou rejeicao com evidencia.
+- `OrdersController` deixou de depender de Unit of Work.
+- Guia ASP.NET Core e READMEs foram atualizados para deixar claro que commit tambem pertence a camada de aplicacao.

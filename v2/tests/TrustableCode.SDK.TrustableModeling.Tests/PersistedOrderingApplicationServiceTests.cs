@@ -13,9 +13,11 @@ public sealed class PersistedOrderingApplicationServiceTests
         var orders = new InMemoryOrderSnapshotStore();
         var outbox = new InMemoryOrderingOutbox();
         var evidence = new InMemoryBusinessEvidenceSink();
+        var unitOfWork = new RecordingOrderingUnitOfWork();
         var service = new PersistedOrderingApplicationService(
             orders,
             outbox,
+            unitOfWork,
             evidence,
             new InMemorySideEffectLifecycleStore());
 
@@ -30,6 +32,7 @@ public sealed class PersistedOrderingApplicationServiceTests
         Assert.Equal(OrderStatus.PlacedAwaitingPayment, orders.Find("order-1")?.Status);
         Assert.Equal("OrderCreated", Assert.Single(outbox.Messages).EventName);
         Assert.Contains(evidence.Evidence, item => item.Name == "OrderCreatedEvidence");
+        Assert.Equal(1, unitOfWork.CommitCount);
     }
 
     [Fact]
@@ -38,9 +41,11 @@ public sealed class PersistedOrderingApplicationServiceTests
         var orders = new InMemoryOrderSnapshotStore();
         var outbox = new InMemoryOrderingOutbox();
         var evidence = new InMemoryBusinessEvidenceSink();
+        var unitOfWork = new RecordingOrderingUnitOfWork();
         var service = new PersistedOrderingApplicationService(
             orders,
             outbox,
+            unitOfWork,
             evidence,
             new InMemorySideEffectLifecycleStore());
 
@@ -55,6 +60,7 @@ public sealed class PersistedOrderingApplicationServiceTests
         Assert.Null(orders.Find("order-1"));
         Assert.Empty(outbox.Messages);
         Assert.Contains(evidence.Evidence, item => item.Name == "OrderCreationRejectedEvidence");
+        Assert.Equal(1, unitOfWork.CommitCount);
     }
 
     [Fact]
@@ -68,6 +74,7 @@ public sealed class PersistedOrderingApplicationServiceTests
         var service = new PersistedOrderingApplicationService(
             orders,
             outbox,
+            new InMemoryOrderingUnitOfWork(),
             evidence,
             new InMemorySideEffectLifecycleStore());
 
@@ -98,6 +105,7 @@ public sealed class PersistedOrderingApplicationServiceTests
         var service = new PersistedOrderingApplicationService(
             orders,
             outbox,
+            new InMemoryOrderingUnitOfWork(),
             new InMemoryBusinessEvidenceSink(),
             new InMemorySideEffectLifecycleStore());
 
@@ -113,5 +121,19 @@ public sealed class PersistedOrderingApplicationServiceTests
         Assert.Equal(TransitionExecutionStatus.Rejected, result.TransitionStatus);
         Assert.Equal(OrderStatus.PaidAwaitingFulfillment, orders.Find("order-1")?.Status);
         Assert.Empty(outbox.Messages);
+    }
+
+    private sealed class RecordingOrderingUnitOfWork : IOrderingUnitOfWork
+    {
+        public int CommitCount { get; private set; }
+
+        public void Commit()
+            => CommitCount++;
+
+        public Task CommitAsync(CancellationToken cancellationToken = default)
+        {
+            Commit();
+            return Task.CompletedTask;
+        }
     }
 }
