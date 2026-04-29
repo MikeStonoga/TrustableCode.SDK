@@ -346,3 +346,11 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - Testes HTTP com `WebApplicationFactory` exercitam o pipeline real do ASP.NET Core.
 - Factory de teste troca a persistencia da API para SQLite in-memory isolado por teste.
 - Testes cobrem Swagger, criacao/consulta de pedido, rejeicao de admissao e conflito de transicao.
+
+## Implementado Na Iteracao De Lifecycle EF Da API Ordering
+
+- `SideEffectLifecycleEntity` e `EfSideEffectLifecycleStore` adicionados ao sample de API.
+- API passou a registrar `ISideEffectLifecycleStore` com EF em vez de store em memoria.
+- `OrderingDbContext` passou a mapear lifecycles por `IdempotencyKey`.
+- Diagnostico `GET /api/diagnostics/side-effect-lifecycles` adicionado.
+- Testes cobrem persistencia do lifecycle via store EF e via fluxo HTTP de preparacao para envio.

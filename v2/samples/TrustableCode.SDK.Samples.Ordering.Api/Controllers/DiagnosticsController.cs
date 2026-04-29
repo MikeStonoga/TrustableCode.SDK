@@ -23,4 +23,11 @@ public sealed class DiagnosticsController(OrderingDbContext db) : ControllerBase
         => Ok(await db.BusinessEvidence
             .OrderBy(evidence => evidence.ObservedAt)
             .ToArrayAsync());
+
+    [HttpGet("side-effect-lifecycles")]
+    [ProducesResponseType(typeof(IReadOnlyList<SideEffectLifecycleEntity>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<SideEffectLifecycleEntity>>> SideEffectLifecycles()
+        => Ok(await db.SideEffectLifecycles
+            .OrderBy(lifecycle => lifecycle.IdempotencyKey)
+            .ToArrayAsync());
 }

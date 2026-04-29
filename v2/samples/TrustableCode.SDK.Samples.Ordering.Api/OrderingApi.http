@@ -72,6 +72,9 @@ GET {{baseUrl}}/api/diagnostics/outbox
 ### Inspect business evidence produced by admissions and transitions
 GET {{baseUrl}}/api/diagnostics/evidence
 
+### Inspect durable side-effect lifecycle records
+GET {{baseUrl}}/api/diagnostics/side-effect-lifecycles
+
 ### Rejection example: external caller cannot create an order directly as Delivered
 POST {{baseUrl}}/api/orders
 Content-Type: application/json

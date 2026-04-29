@@ -8,6 +8,7 @@ It is intentionally simple, but closer to a real application shape:
 - EF Core stores order snapshots
 - EF Core stores outbox messages
 - EF Core stores business evidence
+- EF Core stores side-effect lifecycle records
 - application services still own admission, governed transitions, and side-effect lifecycle
 
 ## Run
@@ -47,6 +48,7 @@ Inspect application output:
 
 - `GET /api/diagnostics/outbox`
 - `GET /api/diagnostics/evidence`
+- `GET /api/diagnostics/side-effect-lifecycles`
 
 ## Example
 
@@ -90,6 +92,7 @@ After running the flow, inspect:
 - `GET /api/orders/{orderId}` for the persisted snapshot.
 - `GET /api/diagnostics/outbox` for events produced by approved operations.
 - `GET /api/diagnostics/evidence` for business evidence produced by admissions and transitions.
+- `GET /api/diagnostics/side-effect-lifecycles` for durable side-effect lifecycle records.
 
 Operation responses include a developer-facing summary:
 
@@ -108,6 +111,7 @@ The API project depends on the domain sample and adapts it to infrastructure:
 - `EfOrderSnapshotStore` implements `IOrderSnapshotStore`.
 - `EfOrderingOutbox` implements `IOrderingOutbox`.
 - `EfBusinessEvidenceSink` implements `IBusinessEvidenceSink`.
+- `EfSideEffectLifecycleStore` implements `ISideEffectLifecycleStore`.
 - `EfOrderingUnitOfWork` commits the EF changes once per HTTP operation.
 - `OrdersController` maps HTTP requests to application services.
 - `DiagnosticsController` exposes outbox and evidence for sample inspection.

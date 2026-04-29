@@ -120,6 +120,51 @@ public sealed class OrderingApiHttpTests
         Assert.Equal("PaidAwaitingFulfillment", json.RootElement.GetProperty("currentStatus").GetString());
     }
 
+    [Fact]
+    public async Task Prepare_for_shipping_should_persist_side_effect_lifecycle_over_http()
+    {
+        await using var factory = new OrderingApiFactory();
+        using var client = factory.CreateClient();
+
+        await client.PostAsJsonAsync("/api/orders", new ExternalCreateOrderRequest(
+            OrderId: "order-http-lifecycle-1",
+            CustomerId: "customer-http-test-1",
+            Lines: [new OrderLine("sku-1", 1)],
+            RequestedStatus: null,
+            CorrelationId: "corr-http-lifecycle-create-1"));
+        await client.PostAsJsonAsync(
+            "/api/orders/order-http-lifecycle-1/capture-payment",
+            new ExternalCapturePaymentRequest(
+                PaymentCaptured: true,
+                PaymentReference: "pay-http-lifecycle-1",
+                RequestedStatus: null,
+                CorrelationId: "corr-http-lifecycle-payment-1"));
+
+        var response = await client.PostAsJsonAsync(
+            "/api/orders/order-http-lifecycle-1/prepare-for-shipping",
+            new ExternalPrepareOrderForShippingRequest(
+                PaymentCaptured: true,
+                StockReserved: true,
+                RequestedStatus: "",
+                CorrelationId: "corr-http-lifecycle-prepare-1"));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var json = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+        var lifecycle = json.RootElement.GetProperty("sideEffectLifecycle");
+        Assert.Equal("NotifyFulfillment", lifecycle.GetProperty("sideEffectName").GetString());
+        Assert.Equal("Published", lifecycle.GetProperty("status").GetString());
+
+        var diagnostics = await client.GetAsync("/api/diagnostics/side-effect-lifecycles");
+
+        Assert.Equal(HttpStatusCode.OK, diagnostics.StatusCode);
+
+        using var diagnosticsJson = await JsonDocument.ParseAsync(await diagnostics.Content.ReadAsStreamAsync());
+        var persisted = Assert.Single(diagnosticsJson.RootElement.EnumerateArray());
+        Assert.Equal("NotifyFulfillment", persisted.GetProperty("sideEffectName").GetString());
+        Assert.Equal("Published", persisted.GetProperty("status").GetString());
+    }
+
     private sealed class OrderingApiFactory : WebApplicationFactory<Program>
     {
         private readonly SqliteConnection _connection = new("Data Source=:memory:");

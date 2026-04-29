@@ -62,6 +62,37 @@ public sealed class OrderingApiPersistenceTests
     }
 
     [Fact]
+    public void Ef_side_effect_lifecycle_store_should_save_and_load_lifecycle()
+    {
+        using var connection = CreateOpenConnection();
+        using var db = CreateDbContext(connection);
+        var store = new EfSideEffectLifecycleStore(db);
+        var unitOfWork = new EfOrderingUnitOfWork(db);
+        var evidence = new BusinessEvidence(
+            name: "NotifyFulfillmentPlannedEvidence",
+            kind: EvidenceKind.SideEffect,
+            message: "Fulfillment notification was planned.",
+            correlationId: "corr-api-lifecycle-1");
+
+        store.Save(new SideEffectLifecycleRecord(
+            sideEffectName: "NotifyFulfillment",
+            idempotencyKey: "NotifyFulfillment:order-1:corr-api-lifecycle-1",
+            status: SideEffectLifecycleStatus.Planned,
+            evidence: evidence));
+        unitOfWork.Commit();
+
+        using var reloadedDb = CreateDbContext(connection);
+        var record = new EfSideEffectLifecycleStore(reloadedDb)
+            .Find("NotifyFulfillment:order-1:corr-api-lifecycle-1");
+
+        Assert.NotNull(record);
+        Assert.Equal("NotifyFulfillment", record.SideEffectName);
+        Assert.Equal(SideEffectLifecycleStatus.Planned, record.Status);
+        Assert.Equal("NotifyFulfillmentPlannedEvidence", record.Evidence.Name);
+        Assert.Equal("corr-api-lifecycle-1", record.Evidence.CorrelationId);
+    }
+
+    [Fact]
     public void Orders_controller_should_create_order_and_persist_snapshot_outbox_and_evidence()
     {
         using var connection = CreateOpenConnection();

@@ -13,6 +13,8 @@ public sealed class OrderingDbContext(DbContextOptions<OrderingDbContext> option
 
     public DbSet<BusinessEvidenceEntity> BusinessEvidence => Set<BusinessEvidenceEntity>();
 
+    public DbSet<SideEffectLifecycleEntity> SideEffectLifecycles => Set<SideEffectLifecycleEntity>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<OrderSnapshotEntity>(entity =>
@@ -35,5 +37,8 @@ public sealed class OrderingDbContext(DbContextOptions<OrderingDbContext> option
 
         modelBuilder.Entity<BusinessEvidenceEntity>()
             .HasKey(evidence => evidence.Id);
+
+        modelBuilder.Entity<SideEffectLifecycleEntity>()
+            .HasKey(lifecycle => lifecycle.IdempotencyKey);
     }
 }
