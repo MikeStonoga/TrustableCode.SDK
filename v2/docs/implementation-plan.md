@@ -362,3 +362,10 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - `OrderingDatabase:ConnectionString` permite escolher outro arquivo SQLite.
 - Startup cria diretorio do SQLite quando necessario e inicializa schema com `EnsureCreated()`.
 - README da API documenta provider padrao, fallback InMemory e connection string customizada.
+
+## Implementado Na Iteracao De Configuracao Reutilizavel Da API Ordering
+
+- `Program.cs` foi reduzido para composicao de alto nivel do sample.
+- Configuracao de controllers, Swagger e infraestrutura foi extraida para extension methods.
+- Inicializacao do banco e configuracao do Swagger UI foram extraidas para extension methods de `WebApplication`.
+- O sample agora mostra um padrao mais copiavel para APIs reais usando o SDK.
