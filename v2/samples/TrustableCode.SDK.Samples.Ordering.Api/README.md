@@ -128,6 +128,7 @@ The API project depends on the domain sample and adapts it to infrastructure:
 - `EfBusinessEvidenceSink` implements `IBusinessEvidenceSink`.
 - `EfSideEffectLifecycleStore` implements `ISideEffectLifecycleStore`.
 - `EfOrderingUnitOfWork` commits the EF changes once per HTTP operation.
+- `OrderingQueryService` reads persisted snapshots for HTTP reads.
 - `OrdersController` maps HTTP requests to application services.
 - `DiagnosticsController` exposes outbox and evidence for sample inspection.
 - Swagger/OpenAPI exposes the sample endpoints and response contracts.

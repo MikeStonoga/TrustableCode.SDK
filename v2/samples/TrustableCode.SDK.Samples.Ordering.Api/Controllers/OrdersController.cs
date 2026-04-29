@@ -10,7 +10,7 @@ namespace TrustableCode.SDK.Samples.Ordering.Api.Controllers;
 [Produces("application/json")]
 [Tags("Orders")]
 public sealed class OrdersController(
-    IOrderSnapshotStore orders,
+    OrderingQueryService queries,
     PersistedOrderingApplicationService persistedApplication) : ControllerBase
 {
     [HttpGet("{orderId}")]
@@ -18,7 +18,7 @@ public sealed class OrdersController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public ActionResult<OrderResponse> Get(string orderId)
     {
-        var snapshot = orders.Find(orderId);
+        var snapshot = queries.FindOrder(orderId);
 
         return snapshot is null
             ? NotFound()

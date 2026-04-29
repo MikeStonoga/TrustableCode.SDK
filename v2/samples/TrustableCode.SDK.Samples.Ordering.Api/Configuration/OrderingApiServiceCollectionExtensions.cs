@@ -62,6 +62,7 @@ public static class OrderingApiServiceCollectionExtensions
         services.AddScoped<ISideEffectLifecycleStore, EfSideEffectLifecycleStore>();
         services.AddScoped<OrderingApplicationService>();
         services.AddScoped<PersistedOrderingApplicationService>();
+        services.AddScoped<OrderingQueryService>();
 
         return services;
     }

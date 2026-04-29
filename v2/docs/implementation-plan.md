@@ -399,3 +399,11 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - `PersistedOrderingApplicationService` passou a commitar a operacao depois de sucesso ou rejeicao com evidencia.
 - `OrdersController` deixou de depender de Unit of Work.
 - Guia ASP.NET Core e READMEs foram atualizados para deixar claro que commit tambem pertence a camada de aplicacao.
+
+## Implementado Na Iteracao De Query Service Na Aplicacao Ordering
+
+- `OrderingQueryService` adicionado ao sample de aplicacao para leitura de snapshots persistidos.
+- `OrdersController` deixou de depender diretamente de `IOrderSnapshotStore`.
+- DI da API passou a registrar `OrderingQueryService`.
+- Guia ASP.NET Core passou a distinguir query service para leitura e application service persistido para comandos.
+- Teste cobre leitura de snapshot pelo query service.

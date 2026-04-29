@@ -109,7 +109,7 @@ public sealed class OrderingApiPersistenceTests
             evidenceSink,
             lifecycleStore);
         var controller = new OrdersController(
-            orders,
+            new OrderingQueryService(orders),
             persistedApplication);
 
         var response = controller.Create(new ExternalCreateOrderRequest(
@@ -147,7 +147,7 @@ public sealed class OrderingApiPersistenceTests
             evidenceSink,
             lifecycleStore);
         var controller = new OrdersController(
-            orders,
+            new OrderingQueryService(orders),
             persistedApplication);
 
         var response = controller.Create(new ExternalCreateOrderRequest(
@@ -185,7 +185,7 @@ public sealed class OrderingApiPersistenceTests
             evidenceSink,
             lifecycleStore);
         var controller = new OrdersController(
-            orders,
+            new OrderingQueryService(orders),
             persistedApplication);
 
         controller.Create(new ExternalCreateOrderRequest(

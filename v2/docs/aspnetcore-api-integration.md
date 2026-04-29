@@ -9,6 +9,7 @@ The SDK should stay in the application/domain flow. ASP.NET Core, EF Core, outbo
 Use this dependency direction:
 
 ```text
+Controller -> Query Service for reads
 Controller -> Persisted Application Service -> Application Service -> Trustable SDK primitives
 Persisted Application Service -> Unit Of Work commit
 Infrastructure adapters -> EF Core / database / outbox tables
@@ -17,6 +18,7 @@ Infrastructure adapters -> EF Core / database / outbox tables
 Keep these responsibilities separate:
 
 - Controllers translate HTTP into external request records, call application services, and choose HTTP status codes.
+- Query services read persisted snapshots for HTTP read models.
 - Application services compose admissions, requirements, governed transitions, evidence, and side-effect lifecycle.
 - Persisted application services load snapshots, rehydrate aggregates, save successful snapshots, and enqueue successful outbox events.
 - EF adapters implement persistence ports such as snapshot store, outbox, evidence sink, and lifecycle store.
@@ -59,6 +61,7 @@ services.AddScoped<ISideEffectLifecycleStore, EfSideEffectLifecycleStore>();
 services.AddScoped<IOrderingUnitOfWork, EfOrderingUnitOfWork>();
 services.AddScoped<OrderingApplicationService>();
 services.AddScoped<PersistedOrderingApplicationService>();
+services.AddScoped<OrderingQueryService>();
 ```
 
 The important part is that the SDK interfaces are registered through application-owned adapters. The SDK does not know about ASP.NET Core or EF Core.
@@ -112,6 +115,7 @@ return CreatedAtAction(nameof(Get), new { orderId = result.Order!.OrderId }, Ope
 
 Snapshot persistence and outbox enqueueing belong inside the persisted application service, not in the controller.
 The controller owns HTTP translation only. Transaction commit belongs to the persisted application service.
+For reads, controllers should call query services instead of reaching directly into repositories.
 
 Use different HTTP outcomes for different trustable outcomes:
 
