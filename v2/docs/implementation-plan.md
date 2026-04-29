@@ -354,3 +354,11 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - `OrderingDbContext` passou a mapear lifecycles por `IdempotencyKey`.
 - Diagnostico `GET /api/diagnostics/side-effect-lifecycles` adicionado.
 - Testes cobrem persistencia do lifecycle via store EF e via fluxo HTTP de preparacao para envio.
+
+## Implementado Na Iteracao De SQLite Runtime Da API Ordering
+
+- Runtime da API Ordering passou a usar SQLite por padrao com `ordering-sample.db`.
+- `OrderingDatabase:Provider=InMemory` mantem a opcao de execucao sem arquivo local.
+- `OrderingDatabase:ConnectionString` permite escolher outro arquivo SQLite.
+- Startup cria diretorio do SQLite quando necessario e inicializa schema com `EnsureCreated()`.
+- README da API documenta provider padrao, fallback InMemory e connection string customizada.

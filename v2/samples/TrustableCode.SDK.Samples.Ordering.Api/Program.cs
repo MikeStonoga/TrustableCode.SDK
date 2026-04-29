@@ -22,7 +22,21 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 builder.Services.AddDbContext<OrderingDbContext>(options =>
-    options.UseInMemoryDatabase("ordering-sample"));
+{
+    var provider = builder.Configuration["OrderingDatabase:Provider"] ?? "Sqlite";
+    if (string.Equals(provider, "InMemory", StringComparison.OrdinalIgnoreCase))
+    {
+        options.UseInMemoryDatabase("ordering-sample");
+        return;
+    }
+
+    var connectionString = builder.Configuration.GetConnectionString("OrderingDatabase")
+        ?? builder.Configuration["OrderingDatabase:ConnectionString"]
+        ?? "Data Source=ordering-sample.db";
+
+    EnsureSqliteDirectoryExists(connectionString);
+    options.UseSqlite(connectionString);
+});
 
 builder.Services.AddScoped<IOrderSnapshotStore, EfOrderSnapshotStore>();
 builder.Services.AddScoped<IOrderingOutbox, EfOrderingOutbox>();
@@ -33,6 +47,12 @@ builder.Services.AddScoped<OrderingApplicationService>();
 builder.Services.AddScoped<PersistedOrderingApplicationService>();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
+    db.Database.EnsureCreated();
+}
 
 app.UseSwagger();
 app.UseSwaggerUI(options =>
@@ -45,6 +65,23 @@ app.MapGet("/", () => Results.Redirect("/swagger"));
 app.MapControllers();
 
 app.Run();
+
+static void EnsureSqliteDirectoryExists(string connectionString)
+{
+    var builder = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(connectionString);
+    var dataSource = builder.DataSource;
+    if (string.IsNullOrWhiteSpace(dataSource)
+        || dataSource.Equals(":memory:", StringComparison.OrdinalIgnoreCase))
+    {
+        return;
+    }
+
+    var directory = Path.GetDirectoryName(Path.GetFullPath(dataSource));
+    if (!string.IsNullOrWhiteSpace(directory))
+    {
+        Directory.CreateDirectory(directory);
+    }
+}
 
 public partial class Program
 {

@@ -17,7 +17,20 @@ It is intentionally simple, but closer to a real application shape:
 dotnet run --project samples/TrustableCode.SDK.Samples.Ordering.Api
 ```
 
-The API uses EF Core InMemory by default.
+The API uses SQLite by default and creates `ordering-sample.db` in the current working directory.
+The schema is created automatically on startup with `EnsureCreated()` so the sample can run without EF tooling.
+
+To run without writing a database file, switch the provider to InMemory:
+
+```bash
+dotnet run --project samples/TrustableCode.SDK.Samples.Ordering.Api --OrderingDatabase:Provider=InMemory
+```
+
+To choose another SQLite file:
+
+```bash
+dotnet run --project samples/TrustableCode.SDK.Samples.Ordering.Api --OrderingDatabase:ConnectionString="Data Source=data/ordering-sample.db"
+```
 
 If your local ASP.NET Core profile chooses a different port, update `@baseUrl` in `OrderingApi.http`.
 
@@ -108,6 +121,7 @@ Operation responses include a developer-facing summary:
 The API project depends on the domain sample and adapts it to infrastructure:
 
 - `OrderingDbContext` stores EF entities.
+- SQLite is the default runtime provider; EF InMemory is available for fast local resets.
 - `EfOrderSnapshotStore` implements `IOrderSnapshotStore`.
 - `EfOrderingOutbox` implements `IOrderingOutbox`.
 - `EfBusinessEvidenceSink` implements `IBusinessEvidenceSink`.
