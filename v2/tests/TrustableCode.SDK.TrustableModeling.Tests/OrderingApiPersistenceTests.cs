@@ -102,7 +102,6 @@ public sealed class OrderingApiPersistenceTests
         var unitOfWork = new EfOrderingUnitOfWork(db);
         var evidenceSink = new EfBusinessEvidenceSink(db);
         var lifecycleStore = new InMemorySideEffectLifecycleStore();
-        var application = new OrderingApplicationService(evidenceSink, lifecycleStore);
         var persistedApplication = new PersistedOrderingApplicationService(
             orders,
             outbox,
@@ -110,9 +109,7 @@ public sealed class OrderingApiPersistenceTests
             lifecycleStore);
         var controller = new OrdersController(
             orders,
-            outbox,
             unitOfWork,
-            application,
             persistedApplication);
 
         var response = controller.Create(new ExternalCreateOrderRequest(
@@ -143,7 +140,6 @@ public sealed class OrderingApiPersistenceTests
         var unitOfWork = new EfOrderingUnitOfWork(db);
         var evidenceSink = new EfBusinessEvidenceSink(db);
         var lifecycleStore = new InMemorySideEffectLifecycleStore();
-        var application = new OrderingApplicationService(evidenceSink, lifecycleStore);
         var persistedApplication = new PersistedOrderingApplicationService(
             orders,
             outbox,
@@ -151,9 +147,7 @@ public sealed class OrderingApiPersistenceTests
             lifecycleStore);
         var controller = new OrdersController(
             orders,
-            outbox,
             unitOfWork,
-            application,
             persistedApplication);
 
         var response = controller.Create(new ExternalCreateOrderRequest(
@@ -184,7 +178,6 @@ public sealed class OrderingApiPersistenceTests
         var unitOfWork = new EfOrderingUnitOfWork(db);
         var evidenceSink = new EfBusinessEvidenceSink(db);
         var lifecycleStore = new InMemorySideEffectLifecycleStore();
-        var application = new OrderingApplicationService(evidenceSink, lifecycleStore);
         var persistedApplication = new PersistedOrderingApplicationService(
             orders,
             outbox,
@@ -192,9 +185,7 @@ public sealed class OrderingApiPersistenceTests
             lifecycleStore);
         var controller = new OrdersController(
             orders,
-            outbox,
             unitOfWork,
-            application,
             persistedApplication);
 
         controller.Create(new ExternalCreateOrderRequest(

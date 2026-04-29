@@ -29,7 +29,7 @@ The SDK keeps each responsibility visible:
 - `GovernedSideEffectLifecycle` tracks external work that must be idempotent, durable, or compensatable.
 - `AgentContextPacket` exports model context for reviewers and AI coding agents.
 
-## Minimal Example
+## Minimal Application Service Example
 
 ```csharp
 var result = TrustableAdmissionFlow.ExecuteTransition(
@@ -57,6 +57,66 @@ var published = fulfillmentLifecycle.PlanPersistAndPublish(
 ```
 
 Keep explicit lifecycle calls when your application needs confirmation, compensation, retries, or worker-driven publishing.
+
+## Persisted Application Flow
+
+The SDK does not own repositories, transactions, or outbox transport. Keep those as application concerns and let the SDK preserve business meaning inside that flow:
+
+```text
+Snapshot -> Rehydrate -> Admission -> GovernedTransition -> Save Snapshot -> Outbox -> Evidence
+```
+
+Typical application code:
+
+```csharp
+var snapshot = orders.Find(orderId)
+    ?? throw new InvalidOperationException($"Order '{orderId}' was not found.");
+
+var order = Order.Rehydrate(snapshot);
+var result = application.PrepareForShipping(order, request);
+
+if (!result.Succeeded)
+{
+    return result;
+}
+
+orders.Save(OrderPersistenceSnapshot.From(order));
+
+foreach (var eventName in result.ProducedEvents)
+{
+    outbox.Enqueue(new OrderingOutboxMessage(
+        StreamName: $"Order-{order.OrderId}",
+        EventName: eventName,
+        OrderId: order.OrderId,
+        CorrelationId: request.CorrelationId));
+}
+
+return result;
+```
+
+Rejected operations may record rejection evidence, but they should not save a new aggregate snapshot or enqueue success events.
+
+## ASP.NET Core Integration
+
+In web APIs, keep HTTP and persistence at the edges:
+
+```text
+Controller -> Persisted Application Service -> Application Service -> Trustable SDK primitives
+Controller -> Unit Of Work commit
+Infrastructure adapters -> EF Core / database / outbox tables
+```
+
+Recommended HTTP mapping:
+
+- admission rejected: `400 Bad Request`
+- accepted operation rejected by governed transition: `409 Conflict`
+- missing persisted aggregate: `404 Not Found`
+- applied or already-applied operation: `200 OK` or `201 Created`
+
+Snapshot persistence and outbox enqueueing should live in the application layer, not in controllers.
+Adapters should add changes to the current persistence context. A Unit of Work should commit once per HTTP operation, including rejected admissions when rejection evidence was recorded.
+
+The repository sample includes an ASP.NET Core API with controllers, EF Core SQLite, outbox storage, evidence storage, side-effect lifecycle persistence, Swagger, `.http` examples, and `WebApplicationFactory` tests.
 
 ## Main Primitives
 
@@ -135,14 +195,29 @@ The structured observable record for business-relevant transitions, rejections, 
 
 Exports a markdown context packet so humans and AI agents can inspect business meaning before changing code.
 
+## Testing
+
+The package includes framework-neutral test helpers in `TrustableCode.SDK.TrustableModeling.Testing`.
+
+Use tests to assert semantic behavior directly:
+
+- admissions accept or reject the right external input
+- transitions produce the expected status, events, evidence, and rejection reasons
+- invariants protect state changes
+- side effects preserve idempotency
+- API integration tests validate actual HTTP status codes and JSON response contracts
+
 ## Documentation
 
 See the repository for the current v2 guides and samples:
 
 - `v2/docs/application-service-pattern.md`
+- `v2/docs/persisted-application-flow.md`
+- `v2/docs/aspnetcore-api-integration.md`
 - `v2/docs/evidence-conventions.md`
 - `v2/docs/testing-helpers.md`
 - `v2/samples/TrustableCode.SDK.Samples.Ordering`
+- `v2/samples/TrustableCode.SDK.Samples.Ordering.Api`
 
 ## Status
 

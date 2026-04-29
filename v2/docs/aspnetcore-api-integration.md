@@ -9,15 +9,16 @@ The SDK should stay in the application/domain flow. ASP.NET Core, EF Core, outbo
 Use this dependency direction:
 
 ```text
-Controller -> Application Service -> Trustable SDK primitives
-Controller -> Unit Of Work
+Controller -> Persisted Application Service -> Application Service -> Trustable SDK primitives
+Controller -> Unit Of Work commit
 Infrastructure adapters -> EF Core / database / outbox tables
 ```
 
 Keep these responsibilities separate:
 
-- Controllers translate HTTP into external request records and choose HTTP status codes.
+- Controllers translate HTTP into external request records, call application services, choose HTTP status codes, and commit the request boundary.
 - Application services compose admissions, requirements, governed transitions, evidence, and side-effect lifecycle.
+- Persisted application services load snapshots, rehydrate aggregates, save successful snapshots, and enqueue successful outbox events.
 - EF adapters implement persistence ports such as snapshot store, outbox, evidence sink, and lifecycle store.
 - Unit of Work commits the database once per HTTP operation.
 - Diagnostics endpoints expose sample state, but production systems should usually use observability and admin tooling instead.
@@ -99,19 +100,19 @@ Commit even when admission rejects input if your application recorded business e
 Controllers should not mutate aggregate state directly. They should call the application service and map the result to HTTP.
 
 ```csharp
-var result = application.CreateOrder(request);
+var result = persistedApplication.CreateOrder(request);
+unitOfWork.Commit();
+
 if (!result.Succeeded)
 {
-    unitOfWork.Commit();
     return BadRequest(OperationResponse.From(result));
 }
 
-orders.Save(OrderPersistenceSnapshot.From(result.Order!));
-EnqueueProducedEvents(result.Order!.OrderId, request.CorrelationId, result.ProducedEvents);
-unitOfWork.Commit();
-
 return CreatedAtAction(nameof(Get), new { orderId = result.Order!.OrderId }, OperationResponse.From(result));
 ```
+
+Snapshot persistence and outbox enqueueing belong inside the persisted application service, not in the controller.
+The controller owns HTTP translation and the request-level commit.
 
 Use different HTTP outcomes for different trustable outcomes:
 

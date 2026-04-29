@@ -15,7 +15,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>trustable-code;business-modeling;domain-modeling;invariants;transitions;admission;side-effects;evidence;ai-agents</PackageTags>
     <Description>Semantic modeling primitives for explicit state, governed transitions, protected invariants, admitted boundaries, controlled side effects, observable evidence, and AI agent context.</Description>
-    <PackageReleaseNotes>Preview v2 package for trustable semantic modeling primitives.</PackageReleaseNotes>
+    <PackageReleaseNotes>Preview v2 package with admission builders, governed transitions, evidence, side-effect lifecycle, testing helpers, persisted-flow docs, and ASP.NET Core API integration guidance.</PackageReleaseNotes>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 

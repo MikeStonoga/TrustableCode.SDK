@@ -23,6 +23,31 @@ public sealed class PersistedOrderingApplicationService
         _application = new OrderingApplicationService(evidenceSink, sideEffectLifecycleStore);
     }
 
+    public OrderingApplicationResult CreateOrder(ExternalCreateOrderRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var result = _application.CreateOrder(request);
+        if (!result.Succeeded)
+        {
+            return result;
+        }
+
+        var order = result.Order!;
+        _orders.Save(OrderPersistenceSnapshot.From(order));
+        EnqueueProducedEvents(order.OrderId, request.CorrelationId, result.ProducedEvents);
+
+        return result;
+    }
+
+    public OrderingApplicationResult CapturePayment(
+        string orderId,
+        ExternalCapturePaymentRequest request)
+        => ExecutePersisted(
+            orderId,
+            request.CorrelationId,
+            order => _application.CapturePayment(order, request));
+
     public OrderingApplicationResult PrepareForShipping(
         string orderId,
         ExternalPrepareOrderForShippingRequest request)
@@ -38,6 +63,22 @@ public sealed class PersistedOrderingApplicationService
             orderId,
             request.CorrelationId,
             order => _application.Ship(order, request));
+
+    public OrderingApplicationResult Deliver(
+        string orderId,
+        ExternalDeliverOrderRequest request)
+        => ExecutePersisted(
+            orderId,
+            request.CorrelationId,
+            order => _application.Deliver(order, request));
+
+    public OrderingApplicationResult Cancel(
+        string orderId,
+        ExternalCancelOrderRequest request)
+        => ExecutePersisted(
+            orderId,
+            request.CorrelationId,
+            order => _application.Cancel(order, request));
 
     private OrderingApplicationResult ExecutePersisted(
         string orderId,
@@ -68,16 +109,23 @@ public sealed class PersistedOrderingApplicationService
         }
 
         _orders.Save(OrderPersistenceSnapshot.From(order));
-
-        foreach (var eventName in result.ProducedEvents)
-        {
-            _outbox.Enqueue(new OrderingOutboxMessage(
-                StreamName: $"Order-{order.OrderId}",
-                EventName: eventName,
-                OrderId: order.OrderId,
-                CorrelationId: correlationId));
-        }
+        EnqueueProducedEvents(order.OrderId, correlationId, result.ProducedEvents);
 
         return result;
+    }
+
+    private void EnqueueProducedEvents(
+        string orderId,
+        string correlationId,
+        IEnumerable<string> producedEvents)
+    {
+        foreach (var eventName in producedEvents)
+        {
+            _outbox.Enqueue(new OrderingOutboxMessage(
+                StreamName: $"Order-{orderId}",
+                EventName: eventName,
+                OrderId: orderId,
+                CorrelationId: correlationId));
+        }
     }
 }

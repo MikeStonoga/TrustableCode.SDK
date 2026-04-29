@@ -377,3 +377,17 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - Guia explica status HTTP recomendados para admissao rejeitada, transicao rejeitada, aggregate ausente e sucesso.
 - Guia inclui checklist de integracao e estrategia de testes com SQLite in-memory e `WebApplicationFactory`.
 - `v2/README.md` e README da API passaram a apontar para o guia.
+
+## Implementado Na Iteracao De README NuGet Atualizado
+
+- README do pacote `TrustableCode.SDK.TrustableModeling` atualizado com fluxos estabilizados da v2.
+- Documentacao do pacote agora cobre application service, fluxo persistido, integracao ASP.NET Core e testes.
+- Links para guias e samples atuais foram adicionados ao README do pacote.
+- Release notes do `.csproj` atualizadas para refletir builders, evidencias, lifecycle, helpers de teste e guia de API.
+
+## Implementado Na Iteracao De Controller Fino Na API Ordering
+
+- Persistencia de snapshot e enqueue de outbox foram removidos do `OrdersController`.
+- `PersistedOrderingApplicationService` passou a orquestrar criacao, captura de pagamento, preparo, envio, entrega e cancelamento.
+- Controller ficou responsavel por consulta, chamada da aplicacao persistida, commit da request e mapeamento HTTP.
+- Guia ASP.NET Core foi corrigido para explicitar que snapshot/outbox pertencem a camada de aplicacao, nao ao controller.

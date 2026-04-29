@@ -11,9 +11,7 @@ namespace TrustableCode.SDK.Samples.Ordering.Api.Controllers;
 [Tags("Orders")]
 public sealed class OrdersController(
     IOrderSnapshotStore orders,
-    IOrderingOutbox outbox,
     IOrderingUnitOfWork unitOfWork,
-    OrderingApplicationService application,
     PersistedOrderingApplicationService persistedApplication) : ControllerBase
 {
     [HttpGet("{orderId}")]
@@ -33,21 +31,17 @@ public sealed class OrdersController(
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
     public ActionResult<OperationResponse> Create(ExternalCreateOrderRequest request)
     {
-        var result = application.CreateOrder(request);
+        var result = persistedApplication.CreateOrder(request);
+        unitOfWork.Commit();
+
         if (!result.Succeeded)
         {
-            unitOfWork.Commit();
             return BadRequest(OperationResponse.From(result));
         }
 
-        var order = result.Order!;
-        orders.Save(OrderPersistenceSnapshot.From(order));
-        EnqueueProducedEvents(order.OrderId, request.CorrelationId, result.ProducedEvents);
-        unitOfWork.Commit();
-
         return CreatedAtAction(
             nameof(Get),
-            new { orderId = order.OrderId },
+            new { orderId = result.Order!.OrderId },
             OperationResponse.From(result));
     }
 
@@ -59,8 +53,7 @@ public sealed class OrdersController(
     public ActionResult<OperationResponse> CapturePayment(
         string orderId,
         ExternalCapturePaymentRequest request)
-        => ExecutePersisted(orderId, request.CorrelationId, order =>
-            application.CapturePayment(order, request));
+        => Execute(() => persistedApplication.CapturePayment(orderId, request));
 
     [HttpPost("{orderId}/prepare-for-shipping")]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status200OK)]
@@ -90,8 +83,7 @@ public sealed class OrdersController(
     public ActionResult<OperationResponse> Deliver(
         string orderId,
         ExternalDeliverOrderRequest request)
-        => ExecutePersisted(orderId, request.CorrelationId, order =>
-            application.Deliver(order, request));
+        => Execute(() => persistedApplication.Deliver(orderId, request));
 
     [HttpPost("{orderId}/cancel")]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status200OK)]
@@ -101,30 +93,7 @@ public sealed class OrdersController(
     public ActionResult<OperationResponse> Cancel(
         string orderId,
         ExternalCancelOrderRequest request)
-        => ExecutePersisted(orderId, request.CorrelationId, order =>
-            application.Cancel(order, request));
-
-    private ActionResult<OperationResponse> ExecutePersisted(
-        string orderId,
-        string correlationId,
-        Func<Order, OrderingApplicationResult> execute)
-        => Execute(() =>
-        {
-            var snapshot = orders.Find(orderId)
-                ?? throw new InvalidOperationException($"Order '{orderId}' was not found in persistence.");
-
-            var order = Order.Rehydrate(snapshot);
-            var result = execute(order);
-            if (!result.Succeeded)
-            {
-                return result;
-            }
-
-            orders.Save(OrderPersistenceSnapshot.From(order));
-            EnqueueProducedEvents(order.OrderId, correlationId, result.ProducedEvents);
-
-            return result;
-        });
+        => Execute(() => persistedApplication.Cancel(orderId, request));
 
     private ActionResult<OperationResponse> Execute(Func<OrderingApplicationResult> execute)
     {
@@ -144,21 +113,6 @@ public sealed class OrdersController(
         catch (InvalidOperationException exception)
         {
             return NotFound(new { error = exception.Message });
-        }
-    }
-
-    private void EnqueueProducedEvents(
-        string orderId,
-        string correlationId,
-        IEnumerable<string> producedEvents)
-    {
-        foreach (var eventName in producedEvents)
-        {
-            outbox.Enqueue(new OrderingOutboxMessage(
-                StreamName: $"Order-{orderId}",
-                EventName: eventName,
-                OrderId: orderId,
-                CorrelationId: correlationId));
         }
     }
 }
