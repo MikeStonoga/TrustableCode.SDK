@@ -1,6 +1,7 @@
 # Ordering API Sample
 
 This sample wraps the `Ordering` domain sample in a small ASP.NET Core API with EF Core.
+For the reusable integration pattern behind this sample, see `../../docs/aspnetcore-api-integration.md`.
 
 It is intentionally simple, but closer to a real application shape:
 

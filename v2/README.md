@@ -26,6 +26,8 @@ See `docs/application-service-pattern.md` for the recommended application-layer 
 
 See `docs/persisted-application-flow.md` for the recommended persisted aggregate flow using snapshots, rehydration, save, outbox, and evidence.
 
+See `docs/aspnetcore-api-integration.md` for a practical ASP.NET Core API integration shape using controllers, EF Core adapters, Unit of Work, Swagger, and HTTP tests.
+
 See `docs/evidence-conventions.md` for the logging and tracing field conventions used by `BusinessEvidence`.
 
 See `docs/testing-helpers.md` for framework-neutral checks used to test transitions, admissions, invariants, side effects, and evidence.

@@ -369,3 +369,11 @@ Avaliar o escopo de packaging e publicacao da v2: metadata NuGet, README de paco
 - Configuracao de controllers, Swagger e infraestrutura foi extraida para extension methods.
 - Inicializacao do banco e configuracao do Swagger UI foram extraidas para extension methods de `WebApplication`.
 - O sample agora mostra um padrao mais copiavel para APIs reais usando o SDK.
+
+## Implementado Na Iteracao De Guia De Integracao ASP.NET Core
+
+- `docs/aspnetcore-api-integration.md` criado como guia pratico para APIs reais.
+- Guia documenta separacao entre controller, application service, adapters EF, Unit of Work e SDK.
+- Guia explica status HTTP recomendados para admissao rejeitada, transicao rejeitada, aggregate ausente e sucesso.
+- Guia inclui checklist de integracao e estrategia de testes com SQLite in-memory e `WebApplicationFactory`.
+- `v2/README.md` e README da API passaram a apontar para o guia.
